@@ -1,22 +1,22 @@
 {
-  "name": "My App",
-  "short_name": "App",
-  "id": "/",
-  "start_url": "/",
+  "name": "HSE Walkthrough",
+  "short_name": "HSE",
+  "id": "/HSE-Walkthrough-inspection-list/",
+  "start_url": "/HSE-Walkthrough-inspection-list/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "description": "تطبيق يعمل بدون إنترنت ويوفر تجربة استخدام سريعة وبسيطة.",
+  "theme_color": "#0d6efd",
+  "description": "نظام تفتيش HSE يعمل بدون إنترنت لتسجيل الملاحظات وإدارتها بسهولة.",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/HSE-Walkthrough-inspection-list/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/HSE-Walkthrough-inspection-list/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
@@ -24,7 +24,7 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshots/1.png",
+      "src": "/HSE-Walkthrough-inspection-list/screenshots/1.png",
       "sizes": "540x720",
       "type": "image/png"
     }
