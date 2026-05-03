@@ -1,11 +1,11 @@
 const CACHE_NAME = "app-cache-v1";
 const urlsToCache = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/script.js",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "/HSE-Walkthrough-inspection-list/",
+  "/HSE-Walkthrough-inspection-list/index.html",
+  "/HSE-Walkthrough-inspection-list/style.css",
+  "/HSE-Walkthrough-inspection-list/script.js",
+  "/HSE-Walkthrough-inspection-list/icons/icon-192.png",
+  "/HSE-Walkthrough-inspection-list/icons/icon-512.png"
 ];
 
 self.addEventListener("install", event => {
