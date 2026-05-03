@@ -1,49 +1,32 @@
-const CACHE_NAME = "app-cache-v2";
+const CACHE = "hse-cache-v2";
 
-const urlsToCache = [
-  "/HSE-Walkthrough-inspection-list/",
-  "/HSE-Walkthrough-inspection-list/index.html",
-  "/HSE-Walkthrough-inspection-list/style.css",
-  "/HSE-Walkthrough-inspection-list/script.js",
-  "/HSE-Walkthrough-inspection-list/icon-192.png",
-  "/HSE-Walkthrough-inspection-list/icon-512.png"
+const FILES = [
+  "./",
+  "./index.html",
+  "./script.js",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
-// Install
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+self.addEventListener("install", e => {
+  e.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(FILES))
   );
   self.skipWaiting();
 });
 
-// Activate (تنضيف القديم)
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(k => k !== CACHE && caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch (network-first fallback)
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request).then(res => res || fetch(e.request))
   );
 });
