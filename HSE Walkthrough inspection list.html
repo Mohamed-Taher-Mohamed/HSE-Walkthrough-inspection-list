@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a3a5c">
+<title>HSE Walkthrough Inspection List</title>
+<style>
+/* ================================================================ VARIABLES */
+:root{
+  --primary:#1a3a5c;--primary2:#2d5a8e;--accent:#c0392b;
+  --bg:#d0dce8;--bg2:#f0f4f8;--border:#9ab0c8;
+  --shadow:0 3px 14px rgba(0,0,0,.22);--radius:5px;
+  --cover-bg:#dce6f0;--cover-border:#1a3a5c;
+  --hdr-bg:#1a3a5c;--hdr-txt:#fff;
+  --lbl-bg:#1a3a5c;--lbl-txt:#fff;
+  --val-bg:#b8d4e8;--val-txt:#111;
+  --page-bg:#dce6f0;--page-border:#1a3a5c;
+  --img-bg:#fff;--img-border:#1a3a5c;
+  --note-bg:#f8d7da;--note-border:#c0392b;--note-hdr:#c0392b;--note-txt:#111;
+  --sp-bg:#dce6f0;--sp-border:#1a3a5c;
+  --sp-lbl-bg:#1a3a5c;--sp-lbl-txt:#fff;
+  --sp-val-bg:#b8d4e8;--sp-val-txt:#cc0000;
+  --risk-high-bg:#ffeaea;--risk-high-border:#c0392b;
+  --risk-med-bg:#f3e8ff;--risk-med-border:#8e44ad;
+  --risk-low-bg:#fffbe5;--risk-low-border:#c8a000;
+  --fn-lbl:13px;--fn-val:13px;--fn-note:52px;--fn-sp-lbl:12px;--fn-sp-val:13px;
+  --img-fit:cover;
+  --page-w:1346px;--page-h:748px;--note-h:120px;--sp-w:222px;
+}
+/* ================================================================ RESET */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--bg);color:#111;direction:ltr;min-height:100%}
+input,select,textarea,button{font-family:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#9ab0c8;border-radius:3px}
+
+/* ================================================================ NAV */
+#topnav{
+  position:sticky;top:0;z-index:300;
+  background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;height:52px;
+  box-shadow:0 2px 10px rgba(0,0,0,.38);gap:8px;
+}
+.nav-left{display:flex;gap:6px;align-items:center}
+.nav-center{display:flex;gap:6px;align-items:center;flex:1;justify-content:center}
+.nav-right{display:flex;gap:6px;align-items:center}
+.nav-title{font-size:14px;font-weight:700;white-space:nowrap;letter-spacing:.3px}
+.nbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;
+  padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;
+  white-space:nowrap;transition:background .15s}
+.nbtn:hover{background:rgba(255,255,255,.26)}
+.nbtn.active{background:var(--accent);border-color:var(--accent)}
+.nbtn.grn{background:#1a7a3c;border-color:#1a7a3c}.nbtn.grn:hover{background:#22a050}
+.nbtn.add{background:#d4830a;border-color:#d4830a;font-size:13px;padding:6px 18px}
+.nbtn.add:hover{background:#e89920}
+
+/* ================================================================ VIEWS */
+#main{padding:12px;display:flex;flex-direction:column;gap:12px}
+.view{display:none}.view.active{display:block}
+
+/* ================================================================ COVER
+   Same fixed size as report pages: 1346 × 748px
+   Uses flex-column to fill height: header + fields + divider + rtype fills 100%
+*/
+.cover-page{
+  background:var(--cover-bg);border:2px solid var(--cover-border);
+  border-radius:var(--radius);overflow:hidden;
+  /* exact same dimensions as report pages */
+  width:var(--page-w);height:var(--page-h);max-width:100%;
+  margin:0 auto 20px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+}
+.cv-hdr{
+  background:var(--hdr-bg);display:flex;align-items:center;
+  justify-content:space-between;padding:20px 28px;gap:20px;
+  flex-shrink:0;
+}
+.cv-logo-box{
+  background:#fff;border-radius:6px;padding:8px 14px;
+  /* natural width — shrinks/grows with image */
+  flex:none;
+  display:flex;align-items:center;justify-content:center;
+  min-height:110px;
+  /* max 1/3 of header */
+  max-width:33%;
+}
+.cv-logo-box img{
+  /* fill the box width fully, height auto */
+  width:100%;max-height:130px;
+  object-fit:contain;display:block;
+}
+.cv-logo-ph{color:#aaa;font-size:16px}
+.cv-company{
+  background:var(--accent);color:#fff;
+  font-size:56px;
+  font-weight:800;
+  padding:18px 36px;border-radius:5px;text-align:center;
+  /* takes all remaining space */
+  flex:1;
+  min-width:0;
+  letter-spacing:.5px;line-height:1.1;
+}
+.cv-fields{
+  padding:16px 36px 14px;
+  display:flex;
+  flex-direction:row;
+  gap:32px;
+  flex-shrink:0;
+  align-items:center;
+}
+/* Left column — 3 fields (Name, Section, Area) */
+.cv-col-left{
+  flex:1;display:flex;flex-direction:column;gap:12px;justify-content:center;
+}
+/* Right column — 2 fields (Date, Time) */
+.cv-col-right{
+  flex:1;display:flex;flex-direction:column;gap:12px;justify-content:center;
+}
+.cv-row{display:flex;align-items:center;gap:12px}
+.cv-lbl{
+  background:var(--lbl-bg);color:var(--lbl-txt);
+  font-size:26px;
+  font-weight:800;padding:10px 20px;border-radius:5px;
+  min-width:160px;text-align:center;white-space:nowrap;
+  line-height:1.15;flex-shrink:0;
+}
+.cv-val{
+  background:var(--val-bg);color:var(--val-txt);
+  font-size:24px;
+  font-weight:700;
+  padding:10px 18px;border-radius:5px;flex:1;
+  border:2px solid var(--border);outline:none;
+  line-height:1.15;min-width:0;
+}
+.cv-val:focus{border-color:var(--primary2)}
+.cv-div{height:4px;background:linear-gradient(90deg,var(--primary),var(--accent),var(--primary));margin:0 28px;flex-shrink:0}
+/* rtype section fills remaining height */
+.cv-rtype{
+  padding:16px 28px 20px;display:flex;gap:24px;align-items:center;flex-wrap:wrap;
+  flex:1;min-height:0;
+}
+.rtype-lbl{
+  background:var(--lbl-bg);color:var(--lbl-txt);font-size:16px;font-weight:700;
+  padding:8px 18px;border-radius:4px;white-space:nowrap;align-self:center;
+}
+.rtype-btns{display:flex;flex-direction:column;gap:8px;min-width:190px;justify-content:center}
+.rtype-btn{
+  background:var(--primary);color:#fff;border:none;border-radius:4px;
+  padding:10px 24px;font-size:15px;font-weight:600;cursor:pointer;
+  transition:background .15s;text-align:center;
+}
+.rtype-btn:hover{background:var(--primary2)}.rtype-btn.sel{background:var(--accent)}
+.cv-legend{
+  /* fit content, don't stretch to fill full height */
+  flex:none;
+  align-self:center;
+  min-width:240px;max-width:320px;
+  background:#1a3a5c;border-radius:6px;
+  padding:14px 18px;color:#fff;
+  display:flex;flex-direction:column;
+}
+.cv-legend-title{font-size:16px;font-weight:700;margin-bottom:10px;text-align:center}
+.leg-row{padding:6px 12px;border-radius:4px;margin-bottom:6px;font-size:13px;font-weight:700}
+.leg-row:last-child{margin-bottom:0}
+.leg-high{background:#c0392b;color:#fff}.leg-med{background:#8e44ad;color:#fff}.leg-low{background:#f1c40f;color:#333}
+
+/* ================================================================ PAGES INFO */
+.pages-info{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.pages-info span{font-size:13px;color:#555;font-weight:600}
+
+/* ================================================================ REPORT PAGE
+   LAYOUT:
+   ┌──────────────────────────────────────────────┐
+   │  rp-bar (top header 30px)                    │
+   ├──────────┬───────────────────────────────────┤
+   │  sp      │  img-frame (takes remaining upper) │
+   │  (left)  │                                    │
+   │          │                                    │
+   ├──────────┴───────────────────────────────────┤
+   │  note-frame  (full width bottom strip)        │
+   └──────────────────────────────────────────────┘
+*/
+.rp{
+  width:var(--page-w);height:var(--page-h);max-width:100%;
+  display:flex;flex-direction:column;
+  border:2px solid var(--page-border);
+  background:var(--page-bg);
+  border-radius:var(--radius);overflow:hidden;
+  margin:0 auto 20px;box-shadow:var(--shadow);
+  position:relative;
+}
+/* Risk page full coloring — bg + border + note + sp tint */
+.rp.high{background:var(--risk-high-bg)!important;border-color:var(--risk-high-border)!important}
+.rp.medium{background:var(--risk-med-bg)!important;border-color:var(--risk-med-border)!important}
+.rp.low{background:var(--risk-low-bg)!important;border-color:var(--risk-low-border)!important}
+/* Risk-tinted note frame */
+.rp.high .note-frame{background:rgba(192,57,43,.12)!important;border-color:var(--risk-high-border)!important}
+.rp.high .note-hdr{background:var(--risk-high-border)!important}
+.rp.medium .note-frame{background:rgba(142,68,173,.10)!important;border-color:var(--risk-med-border)!important}
+.rp.medium .note-hdr{background:var(--risk-med-border)!important}
+.rp.low .note-frame{background:rgba(200,160,0,.12)!important;border-color:var(--risk-low-border)!important}
+.rp.low .note-hdr{background:var(--risk-low-border)!important;color:#222!important}
+/* Risk-colored side panel — solid risk background */
+.rp.high .sp{border-color:var(--risk-high-border)!important;background:rgba(192,57,43,.18)!important}
+.rp.medium .sp{border-color:var(--risk-med-border)!important;background:rgba(142,68,173,.18)!important}
+.rp.low .sp{border-color:var(--risk-low-border)!important;background:rgba(200,160,0,.18)!important}
+/* Risk-colored sp-spacer */
+.rp.high .sp-spacer{background:rgba(192,57,43,.3)!important;border-color:var(--risk-high-border)!important}
+.rp.medium .sp-spacer{background:rgba(142,68,173,.3)!important;border-color:var(--risk-med-border)!important}
+.rp.low .sp-spacer{background:rgba(200,160,0,.3)!important;border-color:var(--risk-low-border)!important}
+
+.rp-bar{
+  background:var(--hdr-bg);color:var(--hdr-txt);padding:3px 10px;height:28px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.rp-bar-acts{display:flex;gap:4px;align-items:center}
+.pa{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;
+  border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;font-weight:600;transition:background .15s}
+.pa:hover{background:rgba(255,255,255,.3)}.pa.del{background:rgba(192,57,43,.75)}.pa.del:hover{background:#c0392b}
+
+/* Upper section: side LEFT + image RIGHT */
+.rp-upper{display:flex;flex:1;min-height:0;overflow:hidden}
+
+/* SIDE PANEL */
+.sp{
+  width:var(--sp-w);min-width:var(--sp-w);flex-shrink:0;
+  background:var(--sp-bg);border-right:2px solid var(--sp-border);
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
+}
+/* Each sp section: spacer between them */
+.sp-sec{
+  border-bottom:1px solid var(--sp-border);
+  display:flex;flex-direction:column;
+  flex-shrink:0;
+  /* gap / spacing between sections */
+  padding-bottom:6px;
+  margin-bottom:0;
+}
+.sp-sec:last-child{border-bottom:none;flex:1;padding-bottom:0}
+/* Spacer row between sections */
+.sp-spacer{height:8px;background:rgba(0,0,0,.04);border-bottom:1px solid var(--sp-border);flex-shrink:0}
+.sp-lbl{background:var(--sp-lbl-bg);color:var(--sp-lbl-txt);
+  font-size:var(--fn-sp-lbl);font-weight:700;padding:6px 8px;text-align:center}
+.sp-val{background:var(--sp-val-bg);color:var(--sp-val-txt);
+  font-size:var(--fn-sp-val);font-weight:700;padding:6px 8px;text-align:center}
+/* Dropdown in sp — on TOP, shown first */
+.sp-sel{
+  background:var(--sp-val-bg);color:var(--sp-val-txt);
+  font-size:11px;font-weight:600;
+  border:none;border-bottom:1px solid var(--sp-border);
+  width:100%;padding:5px 7px;cursor:pointer;outline:none;text-align:center;
+}
+/* Hidden in print */
+.sp-sel-row{background:var(--sp-val-bg);border-bottom:1px solid rgba(0,0,0,.08);flex-shrink:0}
+.sp-data{flex:1;display:flex;flex-direction:column}
+
+/* IMAGE FRAME */
+.img-frame{
+  flex:1;min-width:0;
+  background:var(--img-bg);
+  overflow:hidden;position:relative;
+  display:flex;align-items:stretch;
+}
+.img-frame img.base-img{width:100%;height:100%;object-fit:var(--img-fit);display:block;position:absolute;inset:0}
+.img-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:#888;font-size:13px;padding:20px;text-align:center;width:100%}
+.img-ph .ico{font-size:44px}
+/* Drawing canvas overlay */
+.draw-canvas{
+  position:absolute;inset:0;cursor:crosshair;
+  touch-action:none;/* prevent scroll while drawing */
+}
+/* Toolbar over image */
+.img-toolbar{
+  position:absolute;top:5px;left:5px;right:5px;
+  display:flex;gap:4px;flex-wrap:wrap;z-index:20;
+  background:rgba(26,58,92,.82);border-radius:5px;
+  padding:4px 7px;align-items:center;
+}
+.tb-btn{
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  color:#fff;border-radius:3px;padding:3px 8px;font-size:11px;
+  cursor:pointer;font-weight:600;white-space:nowrap;transition:background .15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,.35)}
+.tb-btn.active-tool{background:#e8a020;border-color:#e8a020}
+.tb-sep{width:1px;height:16px;background:rgba(255,255,255,.3);flex-shrink:0;margin:0 2px}
+.tb-color{width:22px;height:22px;border-radius:3px;border:2px solid rgba(255,255,255,.6);
+  cursor:pointer;padding:0;flex-shrink:0}
+.tb-size{width:48px;height:18px;accent-color:var(--accent);flex-shrink:0}
+/* Upload/Camera floating bottom-right */
+.img-btns{
+  position:absolute;bottom:6px;right:6px;display:flex;gap:4px;z-index:25;
+}
+.img-btn{background:rgba(26,58,92,.9);color:#fff;border:none;border-radius:4px;
+  padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600}
+.img-btn:hover{background:var(--primary)}.img-btn.danger{background:rgba(192,57,43,.9)}
+
+/* NOTE FRAME — full width, auto-fit font */
+.note-frame{
+  background:var(--note-bg);border-top:2px solid var(--note-border);
+  height:var(--note-h);flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;
+}
+.note-hdr{background:var(--note-hdr);color:#fff;font-size:11px;font-weight:700;
+  padding:3px 10px;flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:center;height:22px}
+.note-ta{
+  flex:1;width:100%;border:none;background:transparent;
+  padding:6px 16px;font-weight:800;resize:none;
+  font-family:inherit;color:var(--note-txt);
+  direction:rtl;text-align:right;
+  overflow:hidden;line-height:1.3;
+  font-size:36px;
+}
+.note-ta:focus{outline:none}
+.mic-btn{background:var(--primary);color:#fff;border:none;border-radius:4px;
+  padding:2px 7px;font-size:13px;cursor:pointer}
+.mic-btn.rec{background:var(--accent);animation:pulse .7s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+/* ================================================================ SETTINGS */
+.s-tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.s-tab{background:var(--bg2);border:1px solid var(--border);border-radius:3px;
+  padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#444;transition:background .15s,color .15s}
+.s-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.s-panel{display:none}.s-panel.active{display:block}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:960px;margin:0 auto}
+.sg.w1{grid-template-columns:1fr}
+.sc{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sc.full{grid-column:1/-1}
+.sc-hdr{background:var(--primary);color:#fff;font-size:13px;font-weight:700;padding:7px 13px}
+.sc-body{padding:11px;display:flex;flex-direction:column;gap:9px}
+.s-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.s-lbl{font-size:12px;font-weight:700;color:#555;min-width:110px;white-space:nowrap}
+.s-inp{flex:1;border:1px solid var(--border);border-radius:3px;padding:5px 8px;
+  font-size:13px;background:var(--bg2);color:#111;outline:none;min-width:70px}
+.s-inp:focus{border-color:var(--primary2)}
+.sbtn{background:var(--primary);color:#fff;border:none;border-radius:3px;padding:5px 13px;
+  font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.sbtn:hover{background:var(--primary2)}.sbtn.red{background:var(--accent)}.sbtn.red:hover{background:#a93226}
+.sbtn.grn{background:#1a7a3c}.sbtn.grn:hover{background:#22a050}
+.li-list{display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto}
+.li-item{display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:4px 8px;font-size:12px;gap:6px}
+.li-item span{flex:1}.li-item button{background:none;border:none;cursor:pointer;color:#aaa;font-size:13px;padding:1px 4px}
+.li-item button:hover{color:var(--accent)}
+.logo-prev{max-height:60px;max-width:180px;border:1px solid var(--border);border-radius:3px;object-fit:contain;display:none}
+input[type=color]{width:36px;height:28px;border:1px solid #ccc;border-radius:3px;cursor:pointer;padding:2px}
+input[type=range]{accent-color:var(--primary);flex:1}
+.c2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+
+/* ================================================================ MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.54);
+  z-index:999;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal-box{background:#fff;border-radius:8px;padding:20px;max-width:360px;width:92%;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.modal-title{font-size:15px;font-weight:800;color:var(--primary);margin-bottom:10px}
+.modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* ================================================================ TOAST */
+#toast{position:fixed;bottom:16px;right:16px;background:var(--primary);color:#fff;
+  padding:8px 16px;border-radius:5px;font-size:13px;font-weight:600;
+  z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none}
+#toast.show{opacity:1}
+
+/* ================================================================ PRINT */
+@media print{
+  @page{size:1366px 768px;margin:0}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  #topnav,.pages-info,.rp-bar-acts,.img-btns,.img-toolbar,.note-hdr .mic-btn,
+  .sp-sel-row,#toast,.modal-ov,#settings-view{display:none!important}
+  html,body{margin:0;padding:0;background:#fff;width:1366px}
+  #main{padding:0!important;gap:0!important}
+  .view{display:block!important}
+  #settings-view{display:none!important}
+  .cover-page{
+    width:1366px!important;height:768px!important;max-width:1366px!important;
+    margin:0!important;border-radius:0!important;box-shadow:none!important;
+    page-break-after:always;break-after:page;
+    display:flex!important;flex-direction:column!important;
+  }
+  .cv-hdr{background:var(--hdr-bg)!important;color:#fff!important;padding:18px 28px!important;flex-shrink:0!important}
+  .cv-logo-box{background:#fff!important}
+  .cv-company{background:var(--accent)!important;color:#fff!important;font-size:28px!important}
+  .cv-lbl{background:var(--lbl-bg)!important;color:var(--lbl-txt)!important;font-size:26px!important;font-weight:800!important}
+  .cv-val{background:var(--val-bg)!important;border:none!important;font-size:24px!important;font-weight:700!important}
+  .cv-legend{background:#1a3a5c!important;color:#fff!important}
+  .cv-legend-title{color:#fff!important}
+  .leg-high{background:#c0392b!important;color:#fff!important}
+  .leg-med{background:#8e44ad!important;color:#fff!important}
+  .leg-low{background:#f1c40f!important;color:#333!important}
+  .rtype-btn{background:var(--primary)!important;color:#fff!important;font-size:15px!important}
+  .rtype-btn.sel{background:var(--accent)!important}
+  /* Risk side panel in print — solid colors */
+  .rp.high .sp{background:rgba(192,57,43,.18)!important;border-color:var(--risk-high-border)!important}
+  .rp.medium .sp{background:rgba(142,68,173,.18)!important;border-color:var(--risk-med-border)!important}
+  .rp.low .sp{background:rgba(200,160,0,.18)!important;border-color:var(--risk-low-border)!important}
+  /* Risk rating text color in print */
+  .risk-val-high{color:#c0392b!important;-webkit-print-color-adjust:exact!important}
+  .risk-val-med{color:#8e44ad!important;-webkit-print-color-adjust:exact!important}
+  .risk-val-low{color:#b8860b!important;-webkit-print-color-adjust:exact!important}
+  .rp{width:1366px!important;height:768px!important;margin:0!important;
+    border-radius:0!important;box-shadow:none!important;
+    page-break-after:always;break-after:page;page-break-inside:avoid;break-inside:avoid;overflow:hidden!important}
+  .rp:last-child{page-break-after:avoid;break-after:avoid}
+  .rp:last-child{page-break-after:avoid;break-after:avoid}
+  .rp-bar{background:var(--hdr-bg)!important;color:#fff!important;display:flex!important}
+  .rp.high{background:var(--risk-high-bg)!important;border-color:var(--risk-high-border)!important}
+  .rp.medium{background:var(--risk-med-bg)!important;border-color:var(--risk-med-border)!important}
+  .rp.low{background:var(--risk-low-bg)!important;border-color:var(--risk-low-border)!important}
+  .rp.high .note-frame{background:rgba(192,57,43,.12)!important;border-color:var(--risk-high-border)!important}
+  .rp.high .note-hdr{background:var(--risk-high-border)!important;display:flex!important}
+  .rp.medium .note-frame{background:rgba(142,68,173,.10)!important;border-color:var(--risk-med-border)!important}
+  .rp.medium .note-hdr{background:var(--risk-med-border)!important;display:flex!important}
+  .rp.low .note-frame{background:rgba(200,160,0,.12)!important;border-color:var(--risk-low-border)!important}
+  .rp.low .note-hdr{background:var(--risk-low-border)!important;color:#222!important;display:flex!important}
+  /* sp risk bg in print — solid */
+  .rp.high .sp{background:rgba(192,57,43,.18)!important;border-color:var(--risk-high-border)!important}
+  .rp.medium .sp{background:rgba(142,68,173,.18)!important;border-color:var(--risk-med-border)!important}
+  .rp.low .sp{background:rgba(200,160,0,.18)!important;border-color:var(--risk-low-border)!important}
+  .sp-lbl{background:var(--sp-lbl-bg)!important;color:var(--sp-lbl-txt)!important}
+  .sp-val{background:var(--sp-val-bg)!important;color:var(--sp-val-txt)!important}
+  .note-frame{background:var(--note-bg)!important;border-color:var(--note-border)!important}
+  .note-hdr{background:var(--note-hdr)!important;color:#fff!important;display:flex!important}
+  /* note-ta: JS sets font-size inline — don't override it, just ensure colors and no scroll */
+  .note-ta{
+    color:var(--note-txt)!important;
+    background:transparent!important;
+    border:none!important;
+    overflow:hidden!important;
+    font-weight:800!important;
+    line-height:1.35!important;
+  }
+  .cv-hdr{background:var(--hdr-bg)!important;color:#fff!important}
+  .cv-company{background:var(--accent)!important;color:#fff!important}
+  .cv-lbl{background:var(--lbl-bg)!important;color:var(--lbl-txt)!important}
+  .cv-val{background:var(--val-bg)!important;border:none!important}
+  .cv-legend{background:#1a3a5c!important;color:#fff!important}
+  .leg-high{background:#c0392b!important;color:#fff!important}
+  .leg-med{background:#8e44ad!important;color:#fff!important}
+  .leg-low{background:#f1c40f!important;color:#333!important}
+  .rtype-btn{background:var(--primary)!important;color:#fff!important}
+  .rtype-btn.sel{background:var(--accent)!important}
+  /* Flatten canvas onto image for print */
+  .draw-canvas{position:absolute!important}
+}
+@media(max-width:800px){
+  .rp{width:100%!important;height:auto!important;min-height:unset!important}
+  .rp-upper{flex-direction:column}
+  .sp{width:100%!important;min-width:unset!important;border-right:none!important;border-bottom:2px solid var(--sp-border)}
+  .note-frame{height:auto}
+  .note-ta{min-height:70px;overflow-y:auto!important}
+  .sg{grid-template-columns:1fr}
+  .cv-fields{grid-template-columns:1fr}
+  .c2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- NAV -->
+<nav id="topnav">
+  <div class="nav-left">
+    <span class="nav-title">🛡️ HSE Walkthrough Inspection List</span>
+  </div>
+  <div class="nav-center">
+    <button class="nbtn add" onclick="addPage()">➕ Add Page</button>
+    <span id="nav-pc" style="color:rgba(255,255,255,.65);font-size:12px;font-weight:600"></span>
+  </div>
+  <div class="nav-right">
+    <button class="nbtn active" id="vbtn-cover"    onclick="showView('cover')">🏠 Cover</button>
+    <button class="nbtn"        id="vbtn-pages"    onclick="showView('pages')">📋 Pages</button>
+    <button class="nbtn"        id="vbtn-settings" onclick="showView('settings')">⚙️ Settings</button>
+    <button class="nbtn grn"                       onclick="exportPDF()">📤 Export PDF</button>
+  </div>
+</nav>
+
+<div id="main">
+
+<!-- COVER VIEW -->
+<div class="view active" id="cover-view">
+<div class="cover-page">
+  <div class="cv-hdr">
+    <div class="cv-logo-box" id="cv-logo-box"><span class="cv-logo-ph" id="cv-no-logo">No Logo</span></div>
+    <div class="cv-company" id="cv-company-name">Company Name</div>
+  </div>
+  <div class="cv-fields">
+    <!-- Left column: Name, Section, Area -->
+    <div class="cv-col-left">
+      <div class="cv-row"><span class="cv-lbl">Name :</span><input class="cv-val" id="cv-name" placeholder="Inspector name" oninput="SC('name',this.value)"></div>
+      <div class="cv-row"><span class="cv-lbl">Section :</span><input class="cv-val" id="cv-section" placeholder="e.g. HSE Administration" oninput="SC('section',this.value)"></div>
+      <div class="cv-row"><span class="cv-lbl">Area :</span><input class="cv-val" id="cv-area" placeholder="Site / Area" oninput="SC('area',this.value)"></div>
+    </div>
+    <!-- Right column: Date, Time -->
+    <div class="cv-col-right">
+      <div class="cv-row"><span class="cv-lbl">Date :</span><input class="cv-val" type="date" id="cv-date" oninput="SC('date',this.value)"></div>
+      <div class="cv-row"><span class="cv-lbl">Time :</span><input class="cv-val" type="time" id="cv-time" oninput="SC('time',this.value)"></div>
+    </div>
+  </div>
+  <div class="cv-div"></div>
+  <div class="cv-rtype">
+    <div class="rtype-lbl">Type of Report :</div>
+    <div class="rtype-btns" id="rtype-btns"></div>
+    <div class="cv-legend">
+      <div class="cv-legend-title">Page Color Guide</div>
+      <div class="leg-row leg-high">🔴 Red — High severity (urgent action)</div>
+      <div class="leg-row leg-med">🟣 Purple — Medium severity</div>
+      <div class="leg-row leg-low">🟡 Yellow — Low severity</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGES VIEW -->
+<div class="view" id="pages-view">
+  <div class="pages-info">
+    <span>Total pages: <strong id="page-count">0</strong></span>
+    <span style="color:#888;font-size:11px">Page size = 1366×768px (laptop screen)</span>
+  </div>
+  <div id="pages-list"></div>
+</div>
+
+<!-- SETTINGS VIEW -->
+<div class="view" id="settings-view">
+  <div class="s-tabs">
+    <button class="s-tab active" onclick="showSTab(0)">General</button>
+    <button class="s-tab"        onclick="showSTab(1)">Lists</button>
+    <button class="s-tab"        onclick="showSTab(2)">Design</button>
+    <button class="s-tab"        onclick="showSTab(3)">Images</button>
+  </div>
+  <!-- General -->
+  <div class="s-panel active" id="sp0">
+    <div class="sg">
+      <div class="sc">
+        <div class="sc-hdr">Company Info</div>
+        <div class="sc-body">
+          <div class="s-row"><span class="s-lbl">Company Name</span><input class="s-inp" id="s-company" oninput="liveCompany(this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Site / Area</span><input class="s-inp" id="s-site"></div>
+          <div class="s-row"><span class="s-lbl">Logo</span>
+            <button class="sbtn" onclick="document.getElementById('logo-file').click()">Upload Logo</button>
+            <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(this)">
+          </div>
+          <div class="s-row">
+            <img class="logo-prev" id="s-logo-prev">
+            <button class="sbtn red" id="s-logo-del" style="display:none" onclick="deleteLogo()">Remove</button>
+          </div>
+          <button class="sbtn grn" onclick="saveGeneral()">💾 Save</button>
+        </div>
+      </div>
+      <div class="sc">
+        <div class="sc-hdr">Responsible Persons Names</div>
+        <div class="sc-body">
+          <div class="s-row"><span class="s-lbl">District Manager</span><input class="s-inp" id="s-mgr" placeholder="Manager full name"></div>
+          <div class="s-row"><span class="s-lbl">Maint. Engineer</span><input class="s-inp" id="s-eng" placeholder="Engineer full name"></div>
+          <button class="sbtn grn" onclick="saveGeneral();toast('Names saved ✓')">💾 Save Names</button>
+        </div>
+      </div>
+      <div class="sc full">
+        <div class="sc-hdr">Report Types</div>
+        <div class="sc-body">
+          <div class="li-list" id="rtypes-list"></div>
+          <div class="s-row">
+            <input class="s-inp" id="new-rtype" placeholder="New report type...">
+            <button class="sbtn grn" onclick="addReportType()">➕ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Lists -->
+  <div class="s-panel" id="sp1">
+    <div class="sg">
+      <div class="sc"><div class="sc-hdr">In Charge (Responsible)</div><div class="sc-body">
+        <div class="li-list" id="resp-list"></div>
+        <div class="s-row"><input class="s-inp" id="new-resp" placeholder="e.g. Site Supervisor">
+          <button class="sbtn grn" onclick="addLI('responsible','new-resp','resp-list')">➕</button></div>
+        <button class="sbtn grn" onclick="saveAll();toast('Saved ✓')">💾 Save</button>
+      </div></div>
+      <div class="sc"><div class="sc-hdr">Hazard Categories</div><div class="sc-body">
+        <div class="li-list" id="haz-list"></div>
+        <div class="s-row"><input class="s-inp" id="new-haz" placeholder="e.g. Noise Hazard">
+          <button class="sbtn grn" onclick="addLI('hazard','new-haz','haz-list')">➕</button></div>
+        <button class="sbtn grn" onclick="saveAll();toast('Saved ✓')">💾 Save</button>
+      </div></div>
+      <div class="sc"><div class="sc-hdr">Risk Rating</div><div class="sc-body">
+        <div class="li-list" id="risk-list"></div>
+        <div class="s-row"><input class="s-inp" id="new-risk" placeholder="e.g. Critical">
+          <button class="sbtn grn" onclick="addLI('risk','new-risk','risk-list')">➕</button></div>
+        <button class="sbtn grn" onclick="saveAll();toast('Saved ✓')">💾 Save</button>
+      </div></div>
+    </div>
+  </div>
+  <!-- Design -->
+  <div class="s-panel" id="sp2">
+    <div class="sg">
+      <div class="sc full"><div class="sc-hdr">Colors &amp; Typography</div><div class="sc-body">
+        <div class="c2">
+          <div class="s-row"><span class="s-lbl">Header BG</span><input type="color" id="d-hdr-bg" value="#1a3a5c" oninput="CV('--hdr-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Header Text</span><input type="color" id="d-hdr-txt" value="#ffffff" oninput="CV('--hdr-txt',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Cover BG</span><input type="color" id="d-cvr-bg" value="#dce6f0" oninput="CV('--cover-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Page BG (default)</span><input type="color" id="d-pg-bg" value="#dce6f0" oninput="CV('--page-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk HIGH bg</span><input type="color" id="d-rh-bg" value="#ffeaea" oninput="CV('--risk-high-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk HIGH border</span><input type="color" id="d-rh-brd" value="#c0392b" oninput="CV('--risk-high-border',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk MED bg</span><input type="color" id="d-rm-bg" value="#f3e8ff" oninput="CV('--risk-med-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk MED border</span><input type="color" id="d-rm-brd" value="#8e44ad" oninput="CV('--risk-med-border',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk LOW bg</span><input type="color" id="d-rl-bg" value="#fffbe5" oninput="CV('--risk-low-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Risk LOW border</span><input type="color" id="d-rl-brd" value="#c8a000" oninput="CV('--risk-low-border',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Label BG</span><input type="color" id="d-lbl-bg" value="#1a3a5c" oninput="CV('--lbl-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Label Text</span><input type="color" id="d-lbl-txt" value="#ffffff" oninput="CV('--lbl-txt',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Value BG</span><input type="color" id="d-val-bg" value="#b8d4e8" oninput="CV('--val-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Value Text</span><input type="color" id="d-val-txt" value="#111111" oninput="CV('--val-txt',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Image Border</span><input type="color" id="d-img-brd" value="#1a3a5c" oninput="CV('--img-border',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Note BG</span><input type="color" id="d-note-bg" value="#f8d7da" oninput="CV('--note-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Note Border/Hdr</span><input type="color" id="d-note-brd" value="#c0392b" oninput="CV('--note-border',this.value);CV('--note-hdr',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Note Text</span><input type="color" id="d-note-txt" value="#111111" oninput="CV('--note-txt',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Side BG</span><input type="color" id="d-sp-bg" value="#dce6f0" oninput="CV('--sp-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Side Lbl BG</span><input type="color" id="d-sp-lbl-bg" value="#1a3a5c" oninput="CV('--sp-lbl-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Side Val BG</span><input type="color" id="d-sp-val-bg" value="#b8d4e8" oninput="CV('--sp-val-bg',this.value)"></div>
+          <div class="s-row"><span class="s-lbl">Side Val Text</span><input type="color" id="d-sp-val-txt" value="#cc0000" oninput="CV('--sp-val-txt',this.value)"></div>
+        </div>
+        <hr style="border-color:#eee;margin:8px 0">
+        <div class="s-row"><span class="s-lbl">Label font</span>
+          <input type="range" min="9" max="20" value="13" id="r-lbl" oninput="CV('--fn-lbl',this.value+'px');document.getElementById('rv-lbl').textContent=this.value+'px'">
+          <span id="rv-lbl" style="font-size:12px;min-width:32px">13px</span></div>
+        <div class="s-row"><span class="s-lbl">Note max font</span>
+          <input type="range" min="10" max="80" value="52" id="r-note" oninput="CV('--fn-note',this.value+'px');document.getElementById('rv-note').textContent=this.value+'px';refitAllNotes()">
+          <span id="rv-note" style="font-size:12px;min-width:32px">52px</span></div>
+        <div class="s-row"><span class="s-lbl">Side font</span>
+          <input type="range" min="9" max="18" value="13" id="r-sp" oninput="CV('--fn-sp-val',this.value+'px');document.getElementById('rv-sp').textContent=this.value+'px'">
+          <span id="rv-sp" style="font-size:12px;min-width:32px">13px</span></div>
+        <div class="s-row"><span class="s-lbl">Note strip height</span>
+          <input type="range" min="60" max="260" value="120" id="r-noteh" oninput="CV('--note-h',this.value+'px');document.getElementById('rv-noteh').textContent=this.value+'px';refitAllNotes()">
+          <span id="rv-noteh" style="font-size:12px;min-width:36px">120px</span></div>
+        <button class="sbtn grn" onclick="saveDesign();toast('Design saved ✓')">💾 Save Design</button>
+      </div></div>
+    </div>
+  </div>
+  <!-- Images -->
+  <div class="s-panel" id="sp3">
+    <div class="sg w1"><div class="sc"><div class="sc-hdr">Image Settings</div><div class="sc-body">
+      <div class="s-row">
+        <span class="s-lbl">Max Width (px)</span><input type="number" class="s-inp" id="s-imgw" value="1080" min="200" max="2000">
+        <span class="s-lbl">Max Height (px)</span><input type="number" class="s-inp" id="s-imgh" value="720" min="100" max="1400">
+      </div>
+      <div class="s-row"><span class="s-lbl">Object Fit</span>
+        <select class="s-inp" id="s-imgfit">
+          <option value="cover">Cover</option><option value="contain">Contain</option><option value="fill">Stretch</option>
+        </select>
+      </div>
+      <div class="s-row"><span class="s-lbl">JPEG Quality</span>
+        <input type="range" min="0.3" max="1" step="0.05" value="0.85" id="s-quality" oninput="document.getElementById('rv-q').textContent=Math.round(this.value*100)+'%'">
+        <span id="rv-q" style="font-size:12px;min-width:36px">85%</span>
+      </div>
+      <button class="sbtn grn" onclick="saveImgSettings();toast('Saved ✓')">💾 Save</button>
+    </div></div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Confirm</div>
+    <div id="modal-body" style="font-size:13px;color:#555"></div>
+    <div class="modal-acts">
+      <button class="sbtn red" id="modal-ok">Confirm</button>
+      <button class="sbtn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input type="file" id="g-gallery" accept="image/*" style="display:none">
+<input type="file" id="g-camera"  accept="image/*" capture="environment" style="display:none">
+
+<script>
+/* ================================================================
+   STATE
+================================================================ */
+const DEF={
+  company:'Reliance Ready Mix Company',logo:null,
+  site:'Tagamo3',mgr:'Hassan Hamdy',eng:'Mahmoud Mustafa',
+  cover:{name:'Eng. : Wael Samir',date:'',section:'HSE Administration',time:'10:00',area:'Tagamo3',reportType:'Observations'},
+  reportTypes:['Best Practice','Observations','Near Miss','First Aid','Accident & Incident'],
+  responsible:["District Manager of Batch Plant's","Maintenance Engineer","Both"],
+  hazard:['Housekeeping','Electrical Hazard','Fire Hazard','Chemical Hazard','Mechanical Hazard',
+    'Working at Height','Manual Handling','Slips & Trips','PPE Violation','Environmental Hazard'],
+  risk:['Low','Medium','High'],
+  pages:[],imgW:1080,imgH:720,imgFit:'cover',imgQuality:0.85,design:{}
+};
+let S=JSON.parse(JSON.stringify(DEF));
+
+/* ================================================================
+   STORAGE
+================================================================ */
+function saveAll(){
+  flushNotes();
+  // save drawing canvases
+  S.pages.forEach(p=>{
+    const c=document.getElementById('dc-'+p.id);
+    if(c) p.drawing=c.toDataURL();
+  });
+  try{localStorage.setItem('hse5',JSON.stringify(S));}
+  catch(e){toast('⚠ Storage full — reduce image quality');}
+}
+function loadAll(){
+  try{
+    const r=localStorage.getItem('hse5');
+    if(r){const p=JSON.parse(r);S=Object.assign(JSON.parse(JSON.stringify(DEF)),p);}
+  }catch(e){console.warn(e);}
+}
+function flushNotes(){
+  document.querySelectorAll('.note-ta').forEach(ta=>{
+    const p=GP(ta.dataset.pid);if(p)p.note=ta.value;
+  });
+}
+function GP(pid){return S.pages.find(p=>p.id===pid);}
+
+/* ================================================================
+   BOOT
+================================================================ */
+window.addEventListener('load',()=>{
+  loadAll();
+  if(!S.cover.date)S.cover.date=new Date().toISOString().slice(0,10);
+  bootCover();bootSettingsUI();renderRtypeBtns();renderPagesDOM();applyDesign();updateNavCount();initPWA();
+});
+
+/* ================================================================
+   VIEWS
+================================================================ */
+function showView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('[id^=vbtn]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(v+'-view').classList.add('active');
+  const b=document.getElementById('vbtn-'+v);if(b)b.classList.add('active');
+  if(v==='settings')syncSettingsUI();
+}
+function showSTab(i){
+  document.querySelectorAll('.s-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sp'+i).classList.add('active');
+  document.querySelectorAll('.s-tab')[i].classList.add('active');
+}
+
+/* ================================================================
+   COVER
+================================================================ */
+function bootCover(){
+  document.getElementById('cv-name').value=S.cover.name||'';
+  document.getElementById('cv-date').value=S.cover.date||'';
+  document.getElementById('cv-section').value=S.cover.section||'';
+  document.getElementById('cv-time').value=S.cover.time||'';
+  document.getElementById('cv-area').value=S.cover.area||'';
+  document.getElementById('cv-company-name').textContent=S.company||'Company Name';
+  updateLogoDisplay();
+}
+function SC(f,v){S.cover[f]=v;saveAll();}
+function liveCompany(v){S.company=v;document.getElementById('cv-company-name').textContent=v||'Company Name';}
+
+/* ================================================================
+   LOGO
+================================================================ */
+function uploadLogo(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{S.logo=e.target.result;updateLogoDisplay();saveAll();toast('Logo uploaded ✓');};
+  r.readAsDataURL(f);
+}
+function deleteLogo(){S.logo=null;updateLogoDisplay();saveAll();}
+function updateLogoDisplay(){
+  const box=document.getElementById('cv-logo-box');
+  const prev=document.getElementById('s-logo-prev');
+  const del=document.getElementById('s-logo-del');
+  if(S.logo){
+    let img=document.getElementById('cv-logo-img');
+    if(!img){img=document.createElement('img');img.id='cv-logo-img';img.style.cssText='max-height:60px;max-width:160px;object-fit:contain';box.innerHTML='';box.appendChild(img);}
+    img.src=S.logo;
+    if(prev){prev.src=S.logo;prev.style.display='block';}
+    if(del)del.style.display='inline-block';
+  }else{
+    box.innerHTML='<span class="cv-logo-ph" id="cv-no-logo">No Logo</span>';
+    if(prev){prev.style.display='none';prev.src='';}
+    if(del)del.style.display='none';
+  }
+}
+
+/* ================================================================
+   REPORT TYPE BUTTONS
+================================================================ */
+function renderRtypeBtns(){
+  const c=document.getElementById('rtype-btns');if(!c)return;
+  c.innerHTML='';
+  S.reportTypes.forEach(rt=>{
+    const b=document.createElement('button');
+    b.className='rtype-btn'+(S.cover.reportType===rt?' sel':'');
+    b.textContent=rt;
+    b.onclick=()=>{S.cover.reportType=rt;c.querySelectorAll('.rtype-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');saveAll();};
+    c.appendChild(b);
+  });
+}
+
+function updateNavCount(){
+  const el=document.getElementById('nav-pc');
+  if(el)el.textContent=S.pages.length?`(${S.pages.length} pages)`:'';
+}
+
+/* ================================================================
+   PAGES DOM
+================================================================ */
+function renderPagesDOM(){
+  const list=document.getElementById('pages-list');
+  list.innerHTML='';
+  S.pages.forEach((p,i)=>list.appendChild(buildPageEl(p,i)));
+  document.getElementById('page-count').textContent=S.pages.length;
+  updateNavCount();
+  setTimeout(()=>{
+    S.pages.forEach(p=>{
+      restoreDrawing(p);
+      const ta=document.getElementById('ta-'+p.id);
+      const nf=document.getElementById('nf-'+p.id);
+      if(ta&&nf)fitTA(ta,nf);
+    });
+  },120);
+}
+
+function addPage(){
+  const pid='p'+Date.now();
+  S.pages.push({id:pid,note:'',responsible:S.responsible[0]||'',
+    hazard:S.hazard[0]||'',risk:'High',img:null,drawing:null});
+  const list=document.getElementById('pages-list');
+  const idx=S.pages.length-1;
+  const el=buildPageEl(S.pages[idx],idx);
+  list.appendChild(el);
+  document.getElementById('page-count').textContent=S.pages.length;
+  updateNavCount();
+  saveAll();
+  if(!document.getElementById('pages-view').classList.contains('active'))showView('pages');
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),120);
+}
+
+/* ================================================================
+   BUILD PAGE ELEMENT
+================================================================ */
+function buildPageEl(page,idx){
+  const wrap=document.createElement('div');
+  wrap.className='rp'+riskCls(page.risk);
+  wrap.id='rp-'+page.id;
+  const fit=S.imgFit||'cover';
+
+  wrap.innerHTML=`
+<div class="rp-bar">
+  <span id="rpnum-${page.id}">Page ${idx+1}</span>
+  <div class="rp-bar-acts">
+    <button class="pa" onclick="movePage('${page.id}',-1)">▲</button>
+    <button class="pa" onclick="movePage('${page.id}',1)">▼</button>
+    <button class="pa del" onclick="askDelete('${page.id}')">🗑 Delete</button>
+  </div>
+</div>
+
+<div class="rp-upper">
+
+  <!-- LEFT: SIDE PANEL -->
+  <div class="sp" id="sp-${page.id}">
+
+    <!-- IN CHARGE: select ON TOP, then names below -->
+    <div class="sp-sec">
+      <div class="sp-lbl" style="letter-spacing:.3px">In charge person</div>
+      <!-- Select always on top, hidden in print -->
+      <div class="sp-sel-row">
+        <select class="sp-sel" id="sel-resp-${page.id}"
+          onchange="updateResp('${page.id}',this.value)">
+          ${S.responsible.map(r=>`<option value="${r}"${page.responsible===r?' selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <!-- Names displayed below -->
+      <div id="sp-resp-${page.id}">${buildRespRows(page)}</div>
+    </div>
+
+    <!-- SPACER -->
+    <div class="sp-spacer"></div>
+
+    <!-- HAZARD: just the select (no duplicate label row) -->
+    <div class="sp-sec">
+      <div class="sp-lbl">Hazard Categories</div>
+      <div class="sp-sel-row">
+        <select class="sp-sel" id="sel-haz-${page.id}"
+          onchange="updateHaz('${page.id}',this.value)">
+          ${S.hazard.map(h=>`<option value="${h}"${page.hazard===h?' selected':''}>${h}</option>`).join('')}
+        </select>
+      </div>
+      <!-- Value shown below for print — same as select value -->
+      <div class="sp-val" id="sp-haz-val-${page.id}">${page.hazard||''}</div>
+    </div>
+
+    <!-- SPACER -->
+    <div class="sp-spacer"></div>
+
+    <!-- RISK -->
+    <div class="sp-sec">
+      <div class="sp-lbl">Risk Rating</div>
+      <div class="sp-sel-row">
+        <select class="sp-sel" id="sel-risk-${page.id}"
+          onchange="updateRisk('${page.id}',this.value)">
+          ${S.risk.map(r=>`<option value="${r}"${page.risk===r?' selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="sp-val ${riskValCls(page.risk)}" id="sp-risk-val-${page.id}"
+        style="font-size:18px;font-weight:800;color:${riskColor(page.risk)};letter-spacing:.5px">${page.risk||''}</div>
+    </div>
+
+  </div><!-- /sp -->
+
+  <!-- RIGHT: IMAGE FRAME with Drawing tools -->
+  <div class="img-frame" id="ifr-${page.id}">
+    ${page.img
+      ?`<img class="base-img" id="bimg-${page.id}" src="${page.img}" alt="obs" style="object-fit:${fit}">`
+      :`<div class="img-ph" id="iph-${page.id}"><div class="ico">📷</div><div>Add image from Gallery or Camera</div></div>`
+    }
+    <!-- Drawing canvas -->
+    <canvas class="draw-canvas" id="dc-${page.id}"></canvas>
+    <!-- Drawing toolbar -->
+    <div class="img-toolbar" id="dtb-${page.id}">
+      <button class="tb-btn active-tool" id="tb-pen-${page.id}"   onclick="setTool('${page.id}','pen')"   title="Freehand">✏️ Pen</button>
+      <button class="tb-btn" id="tb-hl-${page.id}"    onclick="setTool('${page.id}','highlight')" title="Highlight">🟡 Highlight</button>
+      <button class="tb-btn" id="tb-arr-${page.id}"   onclick="setTool('${page.id}','arrow')"  title="Arrow">➡️ Arrow</button>
+      <button class="tb-btn" id="tb-rect-${page.id}"  onclick="setTool('${page.id}','rect')"   title="Rectangle">⬜ Rect</button>
+      <button class="tb-btn" id="tb-circle-${page.id}"onclick="setTool('${page.id}','circle')" title="Circle">⭕ Circle</button>
+      <button class="tb-btn" id="tb-text-${page.id}"  onclick="setTool('${page.id}','text')"   title="Text">T Text</button>
+      <button class="tb-btn" id="tb-erase-${page.id}" onclick="setTool('${page.id}','eraser')" title="Eraser">🧹 Erase</button>
+      <div class="tb-sep"></div>
+      <input type="color" class="tb-color" id="tb-col-${page.id}" value="#e8001a" title="Color">
+      <input type="range" class="tb-size" id="tb-sz-${page.id}" min="1" max="30" value="3" title="Size">
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="undoDraw('${page.id}')" title="Undo">↩ Undo</button>
+      <button class="tb-btn" onclick="clearDraw('${page.id}')" title="Clear all drawings">🗑 Clear</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button>
+      <button class="tb-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button>
+      ${page.img?`<button class="tb-btn danger" style="background:rgba(192,57,43,.8)" onclick="clearImg('${page.id}')">✕ Remove</button>`:''}
+    </div>
+  </div>
+
+</div><!-- /rp-upper -->
+
+<!-- BOTTOM: NOTE full width -->
+<div class="note-frame" id="nf-${page.id}">
+  <div class="note-hdr">
+    <span>Observation / Note</span>
+    <button class="mic-btn" id="mic-${page.id}" onclick="toggleMic('${page.id}')">🎤</button>
+  </div>
+  <textarea class="note-ta" id="ta-${page.id}" data-pid="${page.id}"
+    placeholder="اكتب الملاحظة هنا... Write observation here"
+    oninput="onNoteInput('${page.id}')"
+    onblur="UF('${page.id}','note',this.value)">${page.note||''}</textarea>
+</div>`;
+
+  // Init drawing after DOM settles
+  setTimeout(()=>{
+    initCanvas(page.id);
+    if(page.drawing)restoreDrawing(page);
+    // fit note text
+    const ta=document.getElementById('ta-'+page.id);
+    const nf=document.getElementById('nf-'+page.id);
+    if(ta&&nf)fitTA(ta,nf);
+  },80);
+
+  return wrap;
+}
+
+/* ================================================================
+   SIDE PANEL HELPERS
+================================================================ */
+function buildRespRows(page){
+  const mgr=S.mgr||'District Manager';
+  const eng=S.eng||'Maintenance Engineer';
+  const r=(page.responsible||'').toLowerCase();
+  if(r.includes('both')){
+    return `<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div>
+            <div class="sp-val">${mgr}</div>
+            <div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div>
+            <div class="sp-val">${eng}</div>`;
+  }else if(r.includes('manager')||r.includes('district')){
+    return `<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div>
+            <div class="sp-val">${mgr}</div>`;
+  }else if(r.includes('engineer')||r.includes('maint')){
+    return `<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div>
+            <div class="sp-val">${eng}</div>`;
+  }
+  return `<div class="sp-val">${page.responsible||''}</div>`;
+}
+function riskCls(risk){if(!risk)return '';const r=risk.toLowerCase();return r==='high'?' high':r==='medium'?' medium':r==='low'?' low':'';}
+function riskColor(risk){if(!risk)return 'var(--sp-val-txt)';const r=risk.toLowerCase();return r==='high'?'#c0392b':r==='medium'?'#8e44ad':r==='low'?'#b8860b':'var(--sp-val-txt)';}
+function riskValCls(risk){if(!risk)return '';const r=risk.toLowerCase();return r==='high'?'risk-val-high':r==='medium'?'risk-val-med':r==='low'?'risk-val-low':'';}
+
+/* ================================================================
+   FIELD UPDATES (no re-render)
+================================================================ */
+function UF(pid,field,val){const p=GP(pid);if(!p)return;p[field]=val;saveAll();}
+function updateResp(pid,val){
+  const p=GP(pid);if(!p)return;p.responsible=val;saveAll();
+  const sec=document.getElementById('sp-resp-'+pid);if(sec)sec.innerHTML=buildRespRows(p);
+}
+function updateHaz(pid,val){
+  const p=GP(pid);if(!p)return;p.hazard=val;saveAll();
+  const el=document.getElementById('sp-haz-val-'+pid);if(el)el.textContent=val;
+}
+function updateRisk(pid,val){
+  const p=GP(pid);if(!p)return;p.risk=val;saveAll();
+  const rp=document.getElementById('rp-'+pid);if(rp)rp.className='rp'+riskCls(val);
+  const el=document.getElementById('sp-risk-val-'+pid);
+  if(el){
+    el.textContent=val;
+    el.style.color=riskColor(val);
+    // update print class
+    el.className='sp-val '+riskValCls(val);
+  }
+}
+function movePage(pid,dir){
+  flushNotes();
+  const idx=S.pages.findIndex(p=>p.id===pid);const ni=idx+dir;
+  if(ni<0||ni>=S.pages.length)return;
+  [S.pages[idx],S.pages[ni]]=[S.pages[ni],S.pages[idx]];
+  saveAll();renderPagesDOM();
+}
+function askDelete(pid){
+  openModal('Delete Page','Delete this page? Cannot be undone.',()=>{
+    flushNotes();S.pages=S.pages.filter(p=>p.id!==pid);saveAll();
+    const el=document.getElementById('rp-'+pid);if(el)el.remove();
+    document.getElementById('page-count').textContent=S.pages.length;updateNavCount();renumber();closeModal();
+  });
+}
+function renumber(){
+  document.querySelectorAll('.rp').forEach((el,i)=>{
+    const pid=el.id.replace('rp-','');
+    const s=document.getElementById('rpnum-'+pid);if(s)s.textContent='Page '+(i+1);
+  });
+}
+
+/* ================================================================
+   NOTE AUTO-FIT
+   Goal: text always fills entire textarea height.
+   - Start at maxFs, shrink until no overflow
+   - If no overflow, try to grow until it would overflow, then back off 1 step
+   - Result: text always uses maximum possible font size within the box
+================================================================ */
+function onNoteInput(pid){
+  const ta = document.getElementById('ta-'+pid);
+  if(ta){ shrinkIfNeeded(ta); UF(pid,'note',ta.value); }
+}
+
+function shrinkIfNeeded(ta){
+  if(!ta) return;
+  // Always start from 36px
+  ta.style.fontSize = '36px';
+  ta.style.lineHeight = '1.3';
+  // If no overflow — stay at 36px
+  if(ta.scrollHeight <= ta.clientHeight) return;
+  // Shrink 1px at a time until no overflow
+  let fs = 36;
+  while(fs > 10 && ta.scrollHeight > ta.clientHeight){
+    fs--;
+    ta.style.fontSize = fs + 'px';
+  }
+}
+
+function fitTA(ta, nf){ shrinkIfNeeded(ta); }
+function refitAllNotes(){
+  document.querySelectorAll('.note-ta').forEach(ta => shrinkIfNeeded(ta));
+}
+
+/* ================================================================
+   IMAGE HANDLING
+================================================================ */
+function pickImg(pid,cam){
+  const inp=cam?document.getElementById('g-camera'):document.getElementById('g-gallery');
+  inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
+}
+function processImg(file,pid){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const mw=S.imgW||1080,mh=S.imgH||720;
+      let w=img.width,h=img.height;
+      const sc=Math.min(mw/w,mh/h,1);w=Math.round(w*sc);h=Math.round(h*sc);
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const data=canvas.toDataURL('image/jpeg',S.imgQuality||0.85);
+      const p=GP(pid);if(!p)return;
+      p.img=data;saveAll();
+      // Update base-img
+      const frame=document.getElementById('ifr-'+pid);
+      if(frame){
+        // remove placeholder
+        const ph=document.getElementById('iph-'+pid);if(ph)ph.remove();
+        let bi=document.getElementById('bimg-'+pid);
+        if(!bi){
+          bi=document.createElement('img');bi.className='base-img';bi.id='bimg-'+pid;
+          bi.alt='obs';bi.style.objectFit=S.imgFit||'cover';
+          frame.insertBefore(bi,frame.firstChild);
+        }
+        bi.src=data;
+        // refresh toolbar remove button
+        const rmBtn=frame.querySelector('.tb-btn.danger');
+        if(!rmBtn){
+          const tb=document.getElementById('dtb-'+pid);
+          if(tb){
+            const b=document.createElement('button');
+            b.className='tb-btn danger';b.style.background='rgba(192,57,43,.8)';
+            b.textContent='✕ Remove';b.onclick=()=>clearImg(pid);
+            tb.appendChild(b);
+          }
+        }
+      }
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clearImg(pid){
+  const p=GP(pid);if(!p)return;p.img=null;saveAll();
+  const bi=document.getElementById('bimg-'+pid);if(bi)bi.remove();
+  const frame=document.getElementById('ifr-'+pid);
+  if(frame&&!document.getElementById('iph-'+pid)){
+    const ph=document.createElement('div');ph.className='img-ph';ph.id='iph-'+pid;
+    ph.innerHTML='<div class="ico">📷</div><div>Add image from Gallery or Camera</div>';
+    frame.insertBefore(ph,frame.firstChild);
+  }
+  const tb=document.getElementById('dtb-'+pid);
+  if(tb){const rmBtn=tb.querySelector('.tb-btn.danger');if(rmBtn)rmBtn.remove();}
+}
+
+/* ================================================================
+   CANVAS DRAWING ENGINE
+================================================================ */
+// Per-page drawing state
+const DS={};// pid -> {tool,color,size,drawing,undoStack,isDown,startX,startY,snapshot}
+
+function initCanvas(pid){
+  const canvas=document.getElementById('dc-'+pid);
+  if(!canvas)return;
+  const frame=document.getElementById('ifr-'+pid);
+  // Size canvas to match frame
+  const resizeCanvas=()=>{
+    const w=frame.offsetWidth||800,h=frame.offsetHeight||450;
+    // Preserve drawing
+    const tmp=document.createElement('canvas');
+    tmp.width=canvas.width;tmp.height=canvas.height;
+    if(canvas.width>0&&canvas.height>0)tmp.getContext('2d').drawImage(canvas,0,0);
+    canvas.width=w;canvas.height=h;
+    if(tmp.width>0&&tmp.height>0)canvas.getContext('2d').drawImage(tmp,0,0,w,h);
+  };
+  resizeCanvas();
+  new ResizeObserver(resizeCanvas).observe(frame);
+
+  DS[pid]={tool:'pen',color:'#e8001a',size:3,isDown:false,startX:0,startY:0,snapshot:null,undoStack:[]};
+
+  // Pointer events
+  canvas.addEventListener('pointerdown',e=>startDraw(e,pid));
+  canvas.addEventListener('pointermove',e=>moveDraw(e,pid));
+  canvas.addEventListener('pointerup',  e=>endDraw(e,pid));
+  canvas.addEventListener('pointerleave',e=>endDraw(e,pid));
+
+  // Sync color+size pickers
+  document.getElementById('tb-col-'+pid).addEventListener('input',e=>{if(DS[pid])DS[pid].color=e.target.value;});
+  document.getElementById('tb-sz-'+pid).addEventListener('input',e=>{if(DS[pid])DS[pid].size=parseInt(e.target.value);});
+}
+
+function setTool(pid,tool){
+  if(!DS[pid])return;
+  DS[pid].tool=tool;
+  // highlight active button
+  const tools=['pen','highlight','arrow','rect','circle','text','eraser'];
+  tools.forEach(t=>{
+    const btn=document.getElementById('tb-'+t+'-'+pid);
+    if(btn)btn.classList.toggle('active-tool',t===tool);
+  });
+  // cursor
+  const canvas=document.getElementById('dc-'+pid);
+  if(canvas)canvas.style.cursor=tool==='eraser'?'cell':tool==='text'?'text':'crosshair';
+}
+
+function getPos(e,canvas){
+  const r=canvas.getBoundingClientRect();
+  const x=(e.clientX||e.touches?.[0]?.clientX||0)-r.left;
+  const y=(e.clientY||e.touches?.[0]?.clientY||0)-r.top;
+  return{x,y};
+}
+
+function startDraw(e,pid){
+  e.preventDefault();
+  const d=DS[pid];if(!d)return;
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const{x,y}=getPos(e,canvas);
+  d.isDown=true;d.startX=x;d.startY=y;
+  // Save snapshot for shape preview
+  d.snapshot=ctx.getImageData(0,0,canvas.width,canvas.height);
+
+  if(d.tool==='text'){
+    const txt=prompt('Enter text:','');if(!txt)return;
+    ctx.save();
+    ctx.font=`bold ${d.size*5+10}px 'Segoe UI',Arial,sans-serif`;
+    ctx.fillStyle=d.color;
+    ctx.fillText(txt,x,y);
+    ctx.restore();
+    pushUndo(pid,canvas);
+    d.isDown=false;return;
+  }
+  if(d.tool==='pen'||d.tool==='eraser'){
+    ctx.save();
+    if(d.tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';}
+    else{ctx.strokeStyle=d.color;ctx.globalCompositeOperation='source-over';}
+    ctx.lineWidth=d.tool==='eraser'?d.size*4:d.size;
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(x,y);
+    ctx.restore();
+  }
+  if(d.tool==='highlight'){
+    ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle=d.color;
+    ctx.lineWidth=d.size*6;ctx.lineCap='square';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(x,y);
+    ctx.restore();
+  }
+}
+
+function moveDraw(e,pid){
+  e.preventDefault();
+  const d=DS[pid];if(!d||!d.isDown)return;
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const{x,y}=getPos(e,canvas);
+
+  if(d.tool==='pen'||d.tool==='eraser'){
+    ctx.save();
+    if(d.tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';}
+    else{ctx.strokeStyle=d.color;ctx.globalCompositeOperation='source-over';}
+    ctx.lineWidth=d.tool==='eraser'?d.size*4:d.size;
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(d.startX,d.startY);ctx.lineTo(x,y);ctx.stroke();
+    ctx.restore();
+    d.startX=x;d.startY=y;return;
+  }
+  if(d.tool==='highlight'){
+    ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle=d.color;
+    ctx.lineWidth=d.size*6;ctx.lineCap='square';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(d.startX,d.startY);ctx.lineTo(x,y);ctx.stroke();
+    ctx.restore();
+    d.startX=x;d.startY=y;return;
+  }
+  // Shape preview: restore snapshot first
+  if(d.snapshot)ctx.putImageData(d.snapshot,0,0);
+  ctx.save();ctx.strokeStyle=d.color;ctx.lineWidth=d.size;ctx.lineCap='round';
+  ctx.globalCompositeOperation='source-over';
+  if(d.tool==='arrow'){
+    drawArrow(ctx,d.startX,d.startY,x,y);
+  }else if(d.tool==='rect'){
+    ctx.strokeRect(d.startX,d.startY,x-d.startX,y-d.startY);
+  }else if(d.tool==='circle'){
+    const rx=Math.abs(x-d.startX)/2,ry=Math.abs(y-d.startY)/2;
+    const cx=d.startX+(x-d.startX)/2,cy=d.startY+(y-d.startY)/2;
+    ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function endDraw(e,pid){
+  const d=DS[pid];if(!d||!d.isDown)return;
+  d.isDown=false;
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  pushUndo(pid,canvas);
+  saveAll();
+}
+
+function drawArrow(ctx,x1,y1,x2,y2){
+  const angle=Math.atan2(y2-y1,x2-x1);
+  const hw=Math.max(ctx.lineWidth*4,12);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  ctx.save();ctx.translate(x2,y2);ctx.rotate(angle);
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-hw,-hw/2);ctx.lineTo(-hw,hw/2);ctx.closePath();
+  ctx.fillStyle=ctx.strokeStyle;ctx.fill();ctx.restore();
+}
+
+function pushUndo(pid,canvas){
+  if(!DS[pid])return;
+  if(!DS[pid].undoStack)DS[pid].undoStack=[];
+  // Keep max 20 steps
+  if(DS[pid].undoStack.length>=20)DS[pid].undoStack.shift();
+  DS[pid].undoStack.push(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height));
+}
+
+function undoDraw(pid){
+  const d=DS[pid];if(!d||!d.undoStack||d.undoStack.length===0)return;
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  d.undoStack.pop();// remove current
+  if(d.undoStack.length>0){
+    ctx.putImageData(d.undoStack[d.undoStack.length-1],0,0);
+  }else{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  saveAll();
+}
+
+function clearDraw(pid){
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  if(DS[pid])DS[pid].undoStack=[];
+  const p=GP(pid);if(p){p.drawing=null;saveAll();}
+}
+
+function restoreDrawing(page){
+  if(!page.drawing)return;
+  const canvas=document.getElementById('dc-'+page.id);if(!canvas)return;
+  const img=new Image();
+  img.onload=()=>{
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    if(DS[page.id])pushUndo(page.id,canvas);
+  };
+  img.src=page.drawing;
+}
+
+/* ================================================================
+   SPEECH RECOGNITION
+================================================================ */
+let _rec=null,_recPid=null;
+function toggleMic(pid){
+  const btn=document.getElementById('mic-'+pid);
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('Speech Recognition not supported in this browser');return;}
+  if(_rec&&_recPid===pid){_rec.stop();return;}
+  if(_rec)_rec.stop();
+  _recPid=pid;_rec=new SR();_rec.lang='ar-EG';_rec.continuous=true;_rec.interimResults=true;
+  if(btn)btn.classList.add('rec');
+  let final='';
+  _rec.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    const ta=document.getElementById('ta-'+pid);
+    if(ta){ta.value=final+interim;fitTA(ta,document.getElementById('nf-'+pid));}
+  };
+  _rec.onerror=e=>{if(btn)btn.classList.remove('rec');toast('Mic: '+e.error);_rec=null;_recPid=null;};
+  _rec.onend=()=>{
+    if(btn)btn.classList.remove('rec');
+    const ta=document.getElementById('ta-'+pid);if(ta)UF(pid,'note',ta.value);
+    _rec=null;_recPid=null;
+  };
+  _rec.start();toast('🎤 Recording... tap mic again to stop');
+}
+
+/* ================================================================
+   SETTINGS SAVE/SYNC
+================================================================ */
+function saveGeneral(){
+  S.company=document.getElementById('s-company').value;S.site=document.getElementById('s-site').value;
+  S.mgr=document.getElementById('s-mgr').value;S.eng=document.getElementById('s-eng').value;
+  document.getElementById('cv-company-name').textContent=S.company||'Company Name';
+  updateLogoDisplay();saveAll();toast('Saved ✓');
+}
+function bootSettingsUI(){syncSettingsUI();}
+function syncSettingsUI(){
+  document.getElementById('s-company').value=S.company||'';
+  document.getElementById('s-site').value=S.site||'';
+  document.getElementById('s-mgr').value=S.mgr||'';
+  document.getElementById('s-eng').value=S.eng||'';
+  document.getElementById('s-imgw').value=S.imgW||1080;
+  document.getElementById('s-imgh').value=S.imgH||720;
+  document.getElementById('s-imgfit').value=S.imgFit||'cover';
+  const q=S.imgQuality||0.85;
+  document.getElementById('s-quality').value=q;
+  document.getElementById('rv-q').textContent=Math.round(q*100)+'%';
+  updateLogoDisplay();renderRtypesList();
+  renderLI('responsible','resp-list');renderLI('hazard','haz-list');renderLI('risk','risk-list');
+}
+function renderRtypesList(){
+  const c=document.getElementById('rtypes-list');if(!c)return;c.innerHTML='';
+  S.reportTypes.forEach((rt,i)=>{
+    const d=document.createElement('div');d.className='li-item';
+    d.innerHTML=`<span>${rt}</span><button onclick="removeRT(${i})">✕</button>`;c.appendChild(d);
+  });
+}
+function addReportType(){const inp=document.getElementById('new-rtype');const v=inp.value.trim();if(!v)return;S.reportTypes.push(v);inp.value='';renderRtypesList();renderRtypeBtns();saveAll();toast('Added ✓');}
+function removeRT(i){S.reportTypes.splice(i,1);renderRtypesList();renderRtypeBtns();saveAll();}
+function renderLI(key,cid){
+  const c=document.getElementById(cid);if(!c)return;c.innerHTML='';
+  S[key].forEach((v,i)=>{
+    const d=document.createElement('div');d.className='li-item';
+    d.innerHTML=`<span>${v}</span><button onclick="removeLI('${key}',${i},'${cid}')">✕</button>`;c.appendChild(d);
+  });
+}
+function addLI(key,inpId,cid){const inp=document.getElementById(inpId);const v=inp.value.trim();if(!v)return;S[key].push(v);inp.value='';renderLI(key,cid);saveAll();toast('Added ✓');}
+function removeLI(key,i,cid){S[key].splice(i,1);renderLI(key,cid);saveAll();}
+function saveImgSettings(){
+  S.imgW=parseInt(document.getElementById('s-imgw').value)||1080;
+  S.imgH=parseInt(document.getElementById('s-imgh').value)||720;
+  S.imgFit=document.getElementById('s-imgfit').value;
+  S.imgQuality=parseFloat(document.getElementById('s-quality').value)||0.85;
+  CV('--img-fit',S.imgFit);saveAll();
+}
+
+/* ================================================================
+   DESIGN
+================================================================ */
+const CMAP=[
+  ['d-hdr-bg','--hdr-bg'],['d-hdr-txt','--hdr-txt'],
+  ['d-cvr-bg','--cover-bg'],['d-pg-bg','--page-bg'],
+  ['d-rh-bg','--risk-high-bg'],['d-rh-brd','--risk-high-border'],
+  ['d-rm-bg','--risk-med-bg'],['d-rm-brd','--risk-med-border'],
+  ['d-rl-bg','--risk-low-bg'],['d-rl-brd','--risk-low-border'],
+  ['d-lbl-bg','--lbl-bg'],['d-lbl-txt','--lbl-txt'],
+  ['d-val-bg','--val-bg'],['d-val-txt','--val-txt'],
+  ['d-img-brd','--img-border'],
+  ['d-note-bg','--note-bg'],['d-note-brd','--note-border'],
+  ['d-note-txt','--note-txt'],
+  ['d-sp-bg','--sp-bg'],
+  ['d-sp-lbl-bg','--sp-lbl-bg'],
+  ['d-sp-val-bg','--sp-val-bg'],['d-sp-val-txt','--sp-val-txt'],
+];
+function CV(n,v){document.documentElement.style.setProperty(n,v);}
+function applyDesign(){
+  if(!S.design)return;
+  Object.entries(S.design).forEach(([k,v])=>{CV(k,v);const e=CMAP.find(m=>m[1]===k);if(e){const el=document.getElementById(e[0]);if(el)el.value=v;}});
+  if(S.imgFit)CV('--img-fit',S.imgFit);
+}
+function saveDesign(){
+  S.design={};
+  CMAP.forEach(([id,varName])=>{const el=document.getElementById(id);if(el){S.design[varName]=el.value;CV(varName,el.value);}});
+  const rl=document.getElementById('r-lbl'),rn=document.getElementById('r-note'),
+        rs=document.getElementById('r-sp'),rnh=document.getElementById('r-noteh');
+  if(rl){S.design['--fn-lbl']=rl.value+'px';CV('--fn-lbl',rl.value+'px');}
+  if(rn){S.design['--fn-note']=rn.value+'px';CV('--fn-note',rn.value+'px');}
+  if(rs){S.design['--fn-sp-val']=rs.value+'px';CV('--fn-sp-val',rs.value+'px');}
+  if(rnh){S.design['--note-h']=rnh.value+'px';CV('--note-h',rnh.value+'px');}
+  saveAll();refitAllNotes();
+}
+
+/* ================================================================
+   EXPORT PDF
+================================================================ */
+function exportPDF(){
+  flushNotes();
+  // Merge drawing into base image before print
+  S.pages.forEach(p=>{
+    const canvas=document.getElementById('dc-'+p.id);
+    if(canvas){
+      canvas.style.display='block';
+      p.drawing=canvas.toDataURL();
+    }
+  });
+  SC('name',document.getElementById('cv-name').value);
+  SC('date',document.getElementById('cv-date').value);
+  SC('section',document.getElementById('cv-section').value);
+  SC('time',document.getElementById('cv-time').value);
+  SC('area',document.getElementById('cv-area').value);
+  saveAll();
+  const views=document.querySelectorAll('.view');
+  const prev=[];views.forEach(v=>{prev.push(v.style.display);v.style.display='block';});
+  document.getElementById('settings-view').style.display='none';
+  toast('🖨️ Opening print dialog...');
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{views.forEach((v,i)=>v.style.display=prev[i]);const act=document.querySelector('.view.active');if(act)act.style.display='block';},800);
+  },380);
+}
+
+/* ================================================================
+   MODAL + TOAST
+================================================================ */
+function openModal(title,body,onOk){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal-ok').onclick=onOk;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ================================================================
+   PWA
+================================================================ */
+function initPWA(){
+  const m={name:'HSE Inspection',short_name:'HSE',display:'standalone',
+    theme_color:'#1a3a5c',background_color:'#1a3a5c',start_url:'.',
+    icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🛡️</text></svg>",sizes:'192x192',type:'image/svg+xml'}]};
+  const lnk=document.createElement('link');lnk.rel='manifest';
+  lnk.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  document.head.appendChild(lnk);
+  if('serviceWorker' in navigator){
+    const sw=`const C='hse-v5';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['.']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('.')))));`;
+    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+  }
+}
+</script>
+</body>
+</html>
