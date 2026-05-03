@@ -3,6 +3,7 @@
   "short_name": "HSE",
   "id": "/HSE-Walkthrough-inspection-list/",
   "start_url": "/HSE-Walkthrough-inspection-list/",
+  "scope": "/HSE-Walkthrough-inspection-list/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
@@ -20,13 +21,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/HSE-Walkthrough-inspection-list/screenshots/1.png",
-      "sizes": "540x720",
-      "type": "image/png"
     }
   ]
 }
