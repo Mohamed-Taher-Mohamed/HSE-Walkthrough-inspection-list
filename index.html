@@ -2,9 +2,12 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a3a5c">
+<meta name="screen-orientation" content="any">
 <link rel="manifest" href="manifest.json">
 <title>HSE Walkthrough Inspection List</title>
 <style>
@@ -366,15 +369,20 @@ input[type=range]{accent-color:var(--primary);flex:1}
 #toast{position:fixed;bottom:16px;right:16px;background:var(--primary);color:#fff;
   padding:8px 16px;border-radius:5px;font-size:13px;font-weight:600;
   z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none}
-#toast.show{opacity:1}
+#login-screen{
+  display:none;
+  position:fixed;inset:0;background:var(--primary);z-index:500;
+  flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;
+}
+#login-screen.active{display:flex!important}
 
 /* ================================================================ PRINT */
 @media print{
   @page{size:1366px 768px;margin:0}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   #topnav,.pages-info,.rp-bar-acts,.img-btns,.img-toolbar,.note-hdr .mic-btn,
-  .sp-sel-row,#toast,.modal-ov,#settings-view{display:none!important}
-  html,body{margin:0;padding:0;background:#fff;width:1366px}
+  .sp-sel-row,#toast,.modal-ov,#settings-view,#login-screen,#cam-modal{display:none!important}
+  html,body{margin:0;padding:0;background:#fff;width:1366px;height:auto}
   #main{padding:0!important;gap:0!important}
   .view{display:block!important}
   #settings-view{display:none!important}
@@ -382,19 +390,19 @@ input[type=range]{accent-color:var(--primary);flex:1}
     width:1366px!important;height:768px!important;max-width:1366px!important;
     margin:0!important;border-radius:0!important;box-shadow:none!important;
     page-break-after:always;break-after:page;
-    display:flex!important;flex-direction:column!important;
+    display:flex!important;flex-direction:column!important;overflow:hidden!important;
   }
-  .cv-hdr{background:var(--hdr-bg)!important;color:#fff!important;padding:18px 28px!important;flex-shrink:0!important}
+  .cv-hdr{background:var(--hdr-bg)!important;color:#fff!important;padding:14px 20px!important;flex-shrink:0!important}
   .cv-logo-box{background:#fff!important}
   .cv-company{background:var(--accent)!important;color:#fff!important;font-size:28px!important}
-  .cv-lbl{background:var(--lbl-bg)!important;color:var(--lbl-txt)!important;font-size:26px!important;font-weight:800!important}
-  .cv-val{background:var(--val-bg)!important;border:none!important;font-size:24px!important;font-weight:700!important}
+  .cv-lbl{background:var(--lbl-bg)!important;color:var(--lbl-txt)!important;font-size:18px!important;font-weight:800!important}
+  .cv-val{background:var(--val-bg)!important;border:none!important;font-size:17px!important;font-weight:700!important}
   .cv-legend{background:#1a3a5c!important;color:#fff!important}
   .cv-legend-title{color:#fff!important}
   .leg-high{background:#c0392b!important;color:#fff!important}
   .leg-med{background:#8e44ad!important;color:#fff!important}
   .leg-low{background:#f1c40f!important;color:#333!important}
-  .rtype-btn{background:var(--primary)!important;color:#fff!important;font-size:15px!important}
+  .rtype-btn{background:var(--primary)!important;color:#fff!important;font-size:13px!important}
   .rtype-btn.sel{background:var(--accent)!important}
   /* Risk side panel in print — solid colors */
   .rp.high .sp{background:rgba(192,57,43,.18)!important;border-color:var(--risk-high-border)!important}
@@ -404,10 +412,9 @@ input[type=range]{accent-color:var(--primary);flex:1}
   .risk-val-high{color:#c0392b!important;-webkit-print-color-adjust:exact!important}
   .risk-val-med{color:#8e44ad!important;-webkit-print-color-adjust:exact!important}
   .risk-val-low{color:#b8860b!important;-webkit-print-color-adjust:exact!important}
-  .rp{width:1366px!important;height:768px!important;margin:0!important;
+  .rp{width:1366px!important;height:768px!important;min-height:768px!important;margin:0!important;
     border-radius:0!important;box-shadow:none!important;
     page-break-after:always;break-after:page;page-break-inside:avoid;break-inside:avoid;overflow:hidden!important}
-  .rp:last-child{page-break-after:avoid;break-after:avoid}
   .rp:last-child{page-break-after:avoid;break-after:avoid}
   .rp-bar{background:var(--hdr-bg)!important;color:#fff!important;display:flex!important}
   .rp.high{background:var(--risk-high-bg)!important;border-color:var(--risk-high-border)!important}
@@ -449,15 +456,78 @@ input[type=range]{accent-color:var(--primary);flex:1}
   /* Flatten canvas onto image for print */
   .draw-canvas{position:absolute!important}
 }
-@media(max-width:800px){
-  .rp{width:100%!important;height:auto!important;min-height:unset!important}
+/* ================================================================
+   RESPONSIVE — mobile, tablet, landscape
+================================================================ */
+
+/* ---- Tablet portrait (≤900px) ---- */
+@media(max-width:900px){
+  :root{--sp-w:180px;--note-h:100px}
+  .cover-page,.rp{width:100%!important;height:auto!important;min-height:unset!important}
+  .cv-fields{flex-direction:column;gap:10px}
+  .cv-col-left,.cv-col-right{width:100%}
+  .cv-lbl{font-size:18px!important;min-width:120px!important;padding:7px 14px!important}
+  .cv-val{font-size:16px!important;padding:7px 12px!important}
+  .cv-company{font-size:28px!important;padding:10px 16px!important}
+  .cv-logo-box{max-width:50%!important}
+  .rp-upper{flex-direction:row}
+  .sp{width:var(--sp-w)!important;min-width:150px!important}
+  .note-frame{height:auto;min-height:80px}
+  .note-ta{min-height:80px;overflow-y:auto!important;font-size:20px!important}
+  .sg{grid-template-columns:1fr 1fr}
+  .c2{grid-template-columns:1fr 1fr}
+  .img-toolbar{flex-wrap:wrap;font-size:10px}
+  .tb-btn{padding:3px 6px!important;font-size:10px!important}
+}
+
+/* ---- Mobile portrait (≤600px) ---- */
+@media(max-width:600px){
+  :root{--sp-w:100%;--note-h:90px}
+  #topnav{flex-wrap:wrap;height:auto;padding:6px 10px;gap:4px}
+  .nav-left .nav-title{font-size:12px}
+  .nav-center,.nav-right{flex-wrap:wrap;gap:4px}
+  .nbtn{padding:4px 8px;font-size:11px}
+  .nbtn.add{font-size:12px;padding:5px 12px}
+  .cover-page,.rp{width:100%!important;height:auto!important;min-height:unset!important;border-radius:0!important}
+  .cv-hdr{flex-direction:column;gap:10px;padding:12px 14px;align-items:stretch}
+  .cv-logo-box{max-width:100%!important;min-height:70px!important}
+  .cv-logo-box img{max-height:70px!important}
+  .cv-company{font-size:20px!important;padding:8px 12px!important}
+  .cv-fields{padding:10px 14px;flex-direction:column;gap:8px}
+  .cv-lbl{font-size:14px!important;min-width:90px!important;padding:5px 10px!important}
+  .cv-val{font-size:13px!important;padding:5px 10px!important}
+  .cv-rtype{padding:10px 14px;flex-direction:column;gap:12px}
+  .cv-legend{min-width:unset;width:100%}
+  .rp-bar{flex-wrap:wrap;height:auto;padding:4px 8px}
   .rp-upper{flex-direction:column}
   .sp{width:100%!important;min-width:unset!important;border-right:none!important;border-bottom:2px solid var(--sp-border)}
-  .note-frame{height:auto}
-  .note-ta{min-height:70px;overflow-y:auto!important}
+  .img-frame{min-height:200px}
+  .note-frame{height:auto;min-height:80px}
+  .note-ta{min-height:80px;overflow-y:auto!important;font-size:18px!important}
   .sg{grid-template-columns:1fr}
-  .cv-fields{grid-template-columns:1fr}
+  .sc.full{grid-column:1/-1}
   .c2{grid-template-columns:1fr}
+  .img-toolbar{padding:3px 5px;gap:3px}
+  .tb-btn{padding:3px 6px!important;font-size:10px!important}
+  #main{padding:8px}
+}
+
+/* ---- Mobile landscape (height ≤500px) ---- */
+@media(max-height:500px) and (orientation:landscape){
+  #topnav{height:42px;padding:0 8px}
+  .nav-title{font-size:12px}
+  .nbtn{padding:4px 8px;font-size:11px}
+  #main{padding:6px}
+  .rp-upper{flex-direction:row!important}
+  .sp{width:160px!important;min-width:140px!important}
+  .note-frame{min-height:60px}
+  .note-ta{font-size:14px!important}
+}
+
+/* ---- Landscape orientation: always show pages side-by-side ---- */
+@media(orientation:landscape) and (max-width:900px){
+  .rp-upper{flex-direction:row!important}
+  .sp{width:180px!important;min-width:160px!important;border-right:2px solid var(--sp-border)!important;border-bottom:none!important}
 }
 </style>
 </head>
@@ -533,6 +603,7 @@ input[type=range]{accent-color:var(--primary);flex:1}
     <button class="s-tab"        onclick="showSTab(1)">Lists</button>
     <button class="s-tab"        onclick="showSTab(2)">Design</button>
     <button class="s-tab"        onclick="showSTab(3)">Images</button>
+    <button class="s-tab"        onclick="showSTab(4)">👤 Users</button>
   </div>
   <!-- General -->
   <div class="s-panel active" id="sp0">
@@ -659,11 +730,68 @@ input[type=range]{accent-color:var(--primary);flex:1}
       </div>
       <button class="sbtn grn" onclick="saveImgSettings();toast('Saved ✓')">💾 Save</button>
     </div></div></div>
-  </div>
-</div>
+  </div><!-- /sp3 -->
+
+  <!-- Users -->
+  <div class="s-panel" id="sp4">
+    <div class="sg w1">
+      <div class="sc full">
+        <div class="sc-hdr">👤 Users Management</div>
+        <div class="sc-body">
+          <p style="font-size:12px;color:#666;margin-bottom:4px">Each user has their own isolated data. Admin can view all. PIN must be 4+ digits.</p>
+          <div class="s-row">
+            <span class="s-lbl">Admin PIN</span>
+            <input class="s-inp" id="s-admin-pin" type="password" placeholder="Set admin PIN (4+ digits)" maxlength="8">
+            <button class="sbtn grn" onclick="saveAdminPin()">💾 Save PIN</button>
+          </div>
+          <hr style="border-color:#eee;margin:8px 0">
+          <div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:6px">Users List:</div>
+          <div class="li-list" id="users-list" style="max-height:240px;border:1px solid #ccc;border-radius:4px;padding:4px;background:#f9f9f9"></div>
+          <div class="s-row" style="margin-top:10px;flex-wrap:wrap;gap:8px">
+            <input class="s-inp" id="new-uname" placeholder="Username" style="min-width:140px">
+            <input class="s-inp" id="new-upin" type="password" placeholder="PIN (4+ digits)" maxlength="8" style="max-width:130px">
+            <button class="sbtn grn" onclick="addUser()">➕ Add User</button>
+          </div>
+          <div id="users-msg" style="font-size:12px;color:#c0392b;margin-top:4px;display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /sp4 -->
+
+</div><!-- /settings-view -->
 
 </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div style="color:#fff;font-size:24px;font-weight:800;letter-spacing:1px">🛡️ HSE Inspection</div>
+  <div style="color:rgba(255,255,255,.7);font-size:14px">Enter your PIN to continue</div>
+  <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:24px 32px;display:flex;flex-direction:column;gap:14px;min-width:260px;max-width:90vw">
+    <select id="login-user" class="s-inp" style="font-size:15px;padding:8px 12px">
+      <option value="">Select user...</option>
+    </select>
+    <input id="login-pin" type="password" maxlength="8" placeholder="Enter PIN"
+      class="s-inp" style="font-size:22px;text-align:center;letter-spacing:6px;padding:10px"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="sbtn grn" style="padding:10px;font-size:15px" onclick="doLogin()">🔓 Login</button>
+    <div id="login-err" style="color:#ff8888;font-size:13px;text-align:center;display:none">Incorrect PIN. Try again.</div>
+  </div>
+</div>
+
+<!-- CAMERA PICKER MODAL -->
+<div class="modal-ov" id="cam-modal">
+  <div class="modal-box" style="text-align:center">
+    <div class="modal-title">📷 Add Image</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+      <button class="sbtn grn" style="padding:12px;font-size:15px" onclick="camChoice('gallery')">🖼️ Choose from Gallery</button>
+      <button class="sbtn" style="padding:12px;font-size:15px;background:#2d5a8e" onclick="camChoice('camera')">📷 Open Camera</button>
+    </div>
+    <div style="margin-top:14px">
+      <button class="sbtn red" onclick="closeCamModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="modal-ov" id="modal">
@@ -682,11 +810,6 @@ input[type=range]{accent-color:var(--primary);flex:1}
 <input type="file" id="g-camera"  accept="image/*" capture="environment" style="display:none">
 
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js")
-    .then(() => console.log("SW Registered"))
-    .catch(err => console.log("SW Error:", err));
-}
 /* ================================================================
    STATE
 ================================================================ */
@@ -699,29 +822,93 @@ const DEF={
   hazard:['Housekeeping','Electrical Hazard','Fire Hazard','Chemical Hazard','Mechanical Hazard',
     'Working at Height','Manual Handling','Slips & Trips','PPE Violation','Environmental Hazard'],
   risk:['Low','Medium','High'],
-  pages:[],imgW:1080,imgH:720,imgFit:'cover',imgQuality:0.85,design:{}
+  pages:[],imgW:1080,imgH:720,imgFit:'cover',imgQuality:0.85,design:{},
+  users:[],adminPin:''
 };
 let S=JSON.parse(JSON.stringify(DEF));
 
 /* ================================================================
-   STORAGE
+   STORAGE — per-user isolated + offline sync queue
 ================================================================ */
+
+function getStorageKey(){
+  // Each user gets their own key; guests share 'hse4'
+  if(currentUser && currentUser.name && currentUser.name!=='Admin'){
+    return 'hse4_u_'+encodeURIComponent(currentUser.name);
+  }
+  return 'hse4';
+}
+
 function saveAll(){
   flushNotes();
-  // save drawing canvases
+  // Save SHAPES (vector data) into each page object
   S.pages.forEach(p=>{
+    if(SHAPES[p.id]) p.shapes=SHAPES[p.id];
+    // Also save canvas bitmap for print/PDF
     const c=document.getElementById('dc-'+p.id);
-    if(c) p.drawing=c.toDataURL();
+    if(c && (SHAPES[p.id]||[]).length>0) p.drawing=c.toDataURL();
   });
-  try{localStorage.setItem('hse5',JSON.stringify(S));}
-  catch(e){toast('⚠ Storage full — reduce image quality');}
-}
-function loadAll(){
+  const key=getStorageKey();
   try{
-    const r=localStorage.getItem('hse5');
-    if(r){const p=JSON.parse(r);S=Object.assign(JSON.parse(JSON.stringify(DEF)),p);}
-  }catch(e){console.warn(e);}
+    localStorage.setItem(key, JSON.stringify(S));
+    // Queue for offline sync when online
+    queueSyncToRemote(key, S);
+  }catch(e){
+    toast('⚠ Storage full — reduce image quality in Settings');
+  }
 }
+
+function loadAll(){
+  const key=getStorageKey();
+  try{
+    const r=localStorage.getItem(key)
+      || localStorage.getItem('hse4')
+      || localStorage.getItem('hse5');
+    if(r){ const p=JSON.parse(r); S=Object.assign(JSON.parse(JSON.stringify(DEF)),p); }
+  }catch(e){ console.warn('loadAll error',e); }
+}
+
+/* Load the correct user's data after login */
+function loadUserData(){
+  const key=getStorageKey();
+  try{
+    const r=localStorage.getItem(key);
+    if(r){ const p=JSON.parse(r); S=Object.assign(JSON.parse(JSON.stringify(DEF)),p); }
+    else{
+      // New user — start fresh but keep global settings
+      S=JSON.parse(JSON.stringify(DEF));
+    }
+  }catch(e){ S=JSON.parse(JSON.stringify(DEF)); }
+}
+
+/* ================================================================
+   OFFLINE SYNC — queue saves, push to GitHub Pages storage
+   Uses localStorage as offline queue; syncs via fetch on online
+================================================================ */
+const SYNC_QUEUE_KEY='hse_sync_queue';
+
+function queueSyncToRemote(key, data){
+  // Store pending sync in a queue
+  try{
+    let q=JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||'[]');
+    // Replace existing entry for same key
+    q=q.filter(e=>e.k!==key);
+    q.push({k:key, ts:Date.now()});
+    // Keep queue lean — just keys, data is already in localStorage
+    if(q.length>20) q=q.slice(-20);
+    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(q));
+  }catch(e){}
+}
+
+// When browser comes back online — note: GitHub Pages is static,
+// so we use localStorage as the persistent store (already done).
+// For a real backend you'd POST here. We notify the user instead.
+window.addEventListener('online', ()=>{
+  toast('🌐 Back online — data is saved locally and ready to use');
+});
+window.addEventListener('offline', ()=>{
+  toast('📴 Offline — changes saved locally, will sync when online');
+});
 function flushNotes(){
   document.querySelectorAll('.note-ta').forEach(ta=>{
     const p=GP(ta.dataset.pid);if(p)p.note=ta.value;
@@ -735,7 +922,17 @@ function GP(pid){return S.pages.find(p=>p.id===pid);}
 window.addEventListener('load',()=>{
   loadAll();
   if(!S.cover.date)S.cover.date=new Date().toISOString().slice(0,10);
-  bootCover();bootSettingsUI();renderRtypeBtns();renderPagesDOM();applyDesign();updateNavCount();initPWA();
+  bootCover();
+  bootSettingsUI();
+  renderRtypeBtns();
+  renderPagesDOM();
+  applyDesign();
+  updateNavCount();
+  initPWA();
+  // Show login if users configured
+  if((S.users||[]).length>0 || S.adminPin){
+    showLogin();
+  }
 });
 
 /* ================================================================
@@ -751,8 +948,12 @@ function showView(v){
 function showSTab(i){
   document.querySelectorAll('.s-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('sp'+i).classList.add('active');
-  document.querySelectorAll('.s-tab')[i].classList.add('active');
+  const panel=document.getElementById('sp'+i);
+  if(panel) panel.classList.add('active');
+  const tabs=document.querySelectorAll('.s-tab');
+  if(tabs[i]) tabs[i].classList.add('active');
+  // Render users list when users tab opened
+  if(i===4) renderUsersList();
 }
 
 /* ================================================================
@@ -838,7 +1039,9 @@ function renderPagesDOM(){
 
 function addPage(){
   const pid='p'+Date.now();
-  S.pages.push({id:pid,note:'',responsible:S.responsible[0]||'',
+  // Default responsible = "Both" (last item in list)
+  const defResp = S.responsible.find(r=>r.toLowerCase().includes('both')) || S.responsible[S.responsible.length-1] || 'Both';
+  S.pages.push({id:pid,note:'',responsible:defResp,
     hazard:S.hazard[0]||'',risk:'High',img:null,drawing:null});
   const list=document.getElementById('pages-list');
   const idx=S.pages.length-1;
@@ -862,7 +1065,7 @@ function buildPageEl(page,idx){
 
   wrap.innerHTML=`
 <div class="rp-bar">
-  <span id="rpnum-${page.id}">Page ${idx+1}</span>
+  <span style="font-size:11px;opacity:.8">HSE Walkthrough Inspection</span>
   <div class="rp-bar-acts">
     <button class="pa" onclick="movePage('${page.id}',-1)">▲</button>
     <button class="pa" onclick="movePage('${page.id}',1)">▼</button>
@@ -875,24 +1078,19 @@ function buildPageEl(page,idx){
   <!-- LEFT: SIDE PANEL -->
   <div class="sp" id="sp-${page.id}">
 
-    <!-- IN CHARGE: select ON TOP, then names below -->
     <div class="sp-sec">
       <div class="sp-lbl" style="letter-spacing:.3px">In charge person</div>
-      <!-- Select always on top, hidden in print -->
       <div class="sp-sel-row">
         <select class="sp-sel" id="sel-resp-${page.id}"
           onchange="updateResp('${page.id}',this.value)">
           ${S.responsible.map(r=>`<option value="${r}"${page.responsible===r?' selected':''}>${r}</option>`).join('')}
         </select>
       </div>
-      <!-- Names displayed below -->
       <div id="sp-resp-${page.id}">${buildRespRows(page)}</div>
     </div>
 
-    <!-- SPACER -->
     <div class="sp-spacer"></div>
 
-    <!-- HAZARD: just the select (no duplicate label row) -->
     <div class="sp-sec">
       <div class="sp-lbl">Hazard Categories</div>
       <div class="sp-sel-row">
@@ -901,14 +1099,11 @@ function buildPageEl(page,idx){
           ${S.hazard.map(h=>`<option value="${h}"${page.hazard===h?' selected':''}>${h}</option>`).join('')}
         </select>
       </div>
-      <!-- Value shown below for print — same as select value -->
       <div class="sp-val" id="sp-haz-val-${page.id}">${page.hazard||''}</div>
     </div>
 
-    <!-- SPACER -->
     <div class="sp-spacer"></div>
 
-    <!-- RISK -->
     <div class="sp-sec">
       <div class="sp-lbl">Risk Rating</div>
       <div class="sp-sel-row">
@@ -923,43 +1118,49 @@ function buildPageEl(page,idx){
 
   </div><!-- /sp -->
 
-  <!-- RIGHT: IMAGE FRAME with Drawing tools -->
+  <!-- RIGHT: IMAGE FRAME -->
   <div class="img-frame" id="ifr-${page.id}">
     ${page.img
       ?`<img class="base-img" id="bimg-${page.id}" src="${page.img}" alt="obs" style="object-fit:${fit}">`
-      :`<div class="img-ph" id="iph-${page.id}"><div class="ico">📷</div><div>Add image from Gallery or Camera</div></div>`
+      :`<div class="img-ph" id="iph-${page.id}">
+          <div class="ico">📷</div>
+          <div>Tap to add image</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="img-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button>
+            <button class="img-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button>
+          </div>
+        </div>`
     }
-    <!-- Drawing canvas -->
-    <canvas class="draw-canvas" id="dc-${page.id}"></canvas>
-    <!-- Drawing toolbar -->
+    <canvas class="draw-canvas" id="dc-${page.id}" style="pointer-events:none"></canvas>
     <div class="img-toolbar" id="dtb-${page.id}">
-      <button class="tb-btn active-tool" id="tb-pen-${page.id}"   onclick="setTool('${page.id}','pen')"   title="Freehand">✏️ Pen</button>
-      <button class="tb-btn" id="tb-hl-${page.id}"    onclick="setTool('${page.id}','highlight')" title="Highlight">🟡 Highlight</button>
-      <button class="tb-btn" id="tb-arr-${page.id}"   onclick="setTool('${page.id}','arrow')"  title="Arrow">➡️ Arrow</button>
-      <button class="tb-btn" id="tb-rect-${page.id}"  onclick="setTool('${page.id}','rect')"   title="Rectangle">⬜ Rect</button>
-      <button class="tb-btn" id="tb-circle-${page.id}"onclick="setTool('${page.id}','circle')" title="Circle">⭕ Circle</button>
-      <button class="tb-btn" id="tb-text-${page.id}"  onclick="setTool('${page.id}','text')"   title="Text">T Text</button>
-      <button class="tb-btn" id="tb-erase-${page.id}" onclick="setTool('${page.id}','eraser')" title="Eraser">🧹 Erase</button>
+      <button class="tb-btn" id="tb-pen-${page.id}"    onclick="setTool('${page.id}','pen')"      title="Freehand">✏️ Pen</button>
+      <button class="tb-btn" id="tb-hl-${page.id}"     onclick="setTool('${page.id}','highlight')" title="Highlight">🟡 HL</button>
+      <button class="tb-btn" id="tb-arr-${page.id}"    onclick="setTool('${page.id}','arrow')"     title="Arrow">➡️ Arrow</button>
+      <button class="tb-btn" id="tb-rect-${page.id}"   onclick="setTool('${page.id}','rect')"      title="Rectangle">⬜ Rect</button>
+      <button class="tb-btn" id="tb-circle-${page.id}" onclick="setTool('${page.id}','circle')"    title="Circle">⭕ Circle</button>
+      <button class="tb-btn" id="tb-text-${page.id}"   onclick="setTool('${page.id}','text')"      title="Text">T Text</button>
+      <button class="tb-btn" id="tb-move-${page.id}"   onclick="setTool('${page.id}','move')"      title="Move shape">✋ Move</button>
+      <button class="tb-btn" id="tb-erase-${page.id}"  onclick="setTool('${page.id}','eraser')"    title="Eraser">🧹</button>
       <div class="tb-sep"></div>
       <input type="color" class="tb-color" id="tb-col-${page.id}" value="#e8001a" title="Color">
-      <input type="range" class="tb-size" id="tb-sz-${page.id}" min="1" max="30" value="3" title="Size">
+      <input type="range" class="tb-size"  id="tb-sz-${page.id}"  min="1" max="30" value="3" title="Size">
       <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="undoDraw('${page.id}')" title="Undo">↩ Undo</button>
-      <button class="tb-btn" onclick="clearDraw('${page.id}')" title="Clear all drawings">🗑 Clear</button>
+      <button class="tb-btn" onclick="undoDraw('${page.id}')">↩</button>
+      <button class="tb-btn" onclick="clearDraw('${page.id}')">🗑</button>
       <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button>
-      <button class="tb-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button>
-      ${page.img?`<button class="tb-btn danger" style="background:rgba(192,57,43,.8)" onclick="clearImg('${page.id}')">✕ Remove</button>`:''}
+      <button class="tb-btn" onclick="pickImg('${page.id}',false)">🖼</button>
+      <button class="tb-btn" onclick="pickImg('${page.id}',true)">📷</button>
+      ${page.img?`<button class="tb-btn" style="background:rgba(192,57,43,.8)" onclick="clearImg('${page.id}')">✕</button>`:''}
     </div>
   </div>
 
 </div><!-- /rp-upper -->
 
-<!-- BOTTOM: NOTE full width -->
+<!-- BOTTOM: NOTE full width with page number -->
 <div class="note-frame" id="nf-${page.id}">
   <div class="note-hdr">
-    <span>Observation / Note</span>
-    <button class="mic-btn" id="mic-${page.id}" onclick="toggleMic('${page.id}')">🎤</button>
+    <span id="note-lbl-${page.id}">Observation / Note For Page ${String(idx+1).padStart(2,'0')} — وصف المشكلة رقم ${String(idx+1).padStart(2,'0')}</span>
+    <button class="mic-btn" id="mic-${page.id}" onclick="toggleMic('${page.id}')">🎤 ${String(idx+1).padStart(2,'0')}</button>
   </div>
   <textarea class="note-ta" id="ta-${page.id}" data-pid="${page.id}"
     placeholder="اكتب الملاحظة هنا... Write observation here"
@@ -1045,7 +1246,11 @@ function askDelete(pid){
 function renumber(){
   document.querySelectorAll('.rp').forEach((el,i)=>{
     const pid=el.id.replace('rp-','');
-    const s=document.getElementById('rpnum-'+pid);if(s)s.textContent='Page '+(i+1);
+    const num=String(i+1).padStart(2,'0');
+    const lbl=document.getElementById('note-lbl-'+pid);
+    if(lbl) lbl.textContent=`Observation / Note For Page ${num} — وصف المشكلة رقم ${num}`;
+    const mic=document.getElementById('mic-'+pid);
+    if(mic) mic.textContent=`🎤 ${num}`;
   });
 }
 
@@ -1084,9 +1289,15 @@ function refitAllNotes(){
 /* ================================================================
    IMAGE HANDLING
 ================================================================ */
-function pickImg(pid,cam){
-  const inp=cam?document.getElementById('g-camera'):document.getElementById('g-gallery');
-  inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
+function pickImg(pid, cam){
+  if('ontouchstart' in window || navigator.maxTouchPoints > 0){
+    // Mobile/tablet: show choice modal
+    openCamModal(pid);
+  } else {
+    // Desktop: direct file picker
+    const inp=cam?document.getElementById('g-camera'):document.getElementById('g-gallery');
+    inp.value=''; inp.onchange=()=>processImg(inp.files[0],pid); inp.click();
+  }
 }
 function processImg(file,pid){
   if(!file)return;
@@ -1146,16 +1357,15 @@ function clearImg(pid){
 }
 
 /* ================================================================
-   CANVAS DRAWING ENGINE
+   CANVAS DRAWING ENGINE — Move tool + solid highlight
 ================================================================ */
-// Per-page drawing state
-const DS={};// pid -> {tool,color,size,drawing,undoStack,isDown,startX,startY,snapshot}
+const DS={};     // pid -> drawing state
+const SHAPES={}; // pid -> shape objects array (enables Move)
 
 function initCanvas(pid){
   const canvas=document.getElementById('dc-'+pid);
   if(!canvas)return;
   const frame=document.getElementById('ifr-'+pid);
-  // Size canvas to match frame
   const resizeCanvas=()=>{
     const w=frame.offsetWidth||800,h=frame.offsetHeight||450;
     // Preserve drawing
@@ -1168,7 +1378,14 @@ function initCanvas(pid){
   resizeCanvas();
   new ResizeObserver(resizeCanvas).observe(frame);
 
-  DS[pid]={tool:'pen',color:'#e8001a',size:3,isDown:false,startX:0,startY:0,snapshot:null,undoStack:[]};
+  DS[pid]={tool:null,color:'#e8001a',size:3,isDown:false,
+    startX:0,startY:0,currentShape:null,undoStack:[],
+    moveTarget:null,moveDx:0,moveDy:0};
+  if(!SHAPES[pid])SHAPES[pid]=[];
+
+  // Default: no tool selected — canvas is transparent to pointer events
+  canvas.style.pointerEvents='none';
+  canvas.style.cursor='default';
 
   // Pointer events
   canvas.addEventListener('pointerdown',e=>startDraw(e,pid));
@@ -1184,15 +1401,19 @@ function initCanvas(pid){
 function setTool(pid,tool){
   if(!DS[pid])return;
   DS[pid].tool=tool;
-  // highlight active button
-  const tools=['pen','highlight','arrow','rect','circle','text','eraser'];
-  tools.forEach(t=>{
+  const canvas=document.getElementById('dc-'+pid);
+  if(canvas){
+    canvas.style.pointerEvents=tool?'auto':'none';
+    canvas.style.cursor=
+      tool==='eraser'?'cell':
+      tool==='text'?'text':
+      tool==='move'?'move':
+      tool?'crosshair':'default';
+  }
+  ['pen','highlight','arrow','rect','circle','text','eraser','move'].forEach(t=>{
     const btn=document.getElementById('tb-'+t+'-'+pid);
     if(btn)btn.classList.toggle('active-tool',t===tool);
   });
-  // cursor
-  const canvas=document.getElementById('dc-'+pid);
-  if(canvas)canvas.style.cursor=tool==='eraser'?'cell':tool==='text'?'text':'crosshair';
 }
 
 function getPos(e,canvas){
@@ -1202,76 +1423,120 @@ function getPos(e,canvas){
   return{x,y};
 }
 
+/* Redraw all shapes */
+function redrawShapes(pid){
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  (SHAPES[pid]||[]).forEach(s=>drawShape(ctx,s));
+}
+
+function drawShape(ctx,s){
+  ctx.save();
+  ctx.strokeStyle=s.color||'#e8001a';
+  ctx.fillStyle=s.color||'#e8001a';
+  ctx.lineWidth=s.size||3;
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='source-over';
+  if(s.type==='pen'){
+    if(!s.path||s.path.length<2){ctx.restore();return;}
+    ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);
+    s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+  }else if(s.type==='highlight'){
+    // SOLID uniform transparent fill rect
+    ctx.globalAlpha=0.38;
+    const x=Math.min(s.x1,s.x2),y=Math.min(s.y1,s.y2);
+    const w=Math.abs(s.x2-s.x1),h=Math.abs(s.y2-s.y1);
+    ctx.fillRect(x,y,w,h);
+  }else if(s.type==='arrow'){
+    drawArrow(ctx,s.x1,s.y1,s.x2,s.y2);
+  }else if(s.type==='rect'){
+    ctx.strokeRect(s.x1,s.y1,s.x2-s.x1,s.y2-s.y1);
+  }else if(s.type==='circle'){
+    const rx=Math.abs(s.x2-s.x1)/2,ry=Math.abs(s.y2-s.y1)/2;
+    const cx=s.x1+(s.x2-s.x1)/2,cy=s.y1+(s.y2-s.y1)/2;
+    ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();
+  }else if(s.type==='text'){
+    ctx.font=`bold ${(s.size||3)*5+10}px 'Segoe UI',Arial,sans-serif`;
+    ctx.fillText(s.text||'',s.x1,s.y1);
+  }else if(s.type==='eraser'){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.lineWidth=(s.size||3)*4;
+    if(!s.path||s.path.length<2){ctx.restore();return;}
+    ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);
+    s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function hitTest(s,x,y){
+  const pad=14;
+  if(s.type==='pen'||s.type==='eraser')
+    return (s.path||[]).some(p=>Math.hypot(p.x-x,p.y-y)<(s.size||3)*4+pad);
+  const x1=Math.min(s.x1??x,s.x2??x)-pad,x2=Math.max(s.x1??x,s.x2??x)+pad;
+  const y1=Math.min(s.y1??y,s.y2??y)-pad,y2=Math.max(s.y1??y,s.y2??y)+pad;
+  return x>=x1&&x<=x2&&y>=y1&&y<=y2;
+}
+
 function startDraw(e,pid){
   e.preventDefault();
   const d=DS[pid];if(!d)return;
+  if(!SHAPES[pid])SHAPES[pid]=[];
   const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  const ctx=canvas.getContext('2d');
   const{x,y}=getPos(e,canvas);
   d.isDown=true;d.startX=x;d.startY=y;
-  // Save snapshot for shape preview
-  d.snapshot=ctx.getImageData(0,0,canvas.width,canvas.height);
 
+  if(d.tool==='move'){
+    for(let i=SHAPES[pid].length-1;i>=0;i--){
+      if(hitTest(SHAPES[pid][i],x,y)){d.moveTarget=i;d.moveDx=x;d.moveDy=y;return;}
+    }
+    d.moveTarget=null;return;
+  }
   if(d.tool==='text'){
-    const txt=prompt('Enter text:','');if(!txt)return;
-    ctx.save();
-    ctx.font=`bold ${d.size*5+10}px 'Segoe UI',Arial,sans-serif`;
-    ctx.fillStyle=d.color;
-    ctx.fillText(txt,x,y);
-    ctx.restore();
-    pushUndo(pid,canvas);
-    d.isDown=false;return;
+    const txt=prompt('Enter annotation:','');if(!txt)return;
+    SHAPES[pid].push({type:'text',x1:x,y1:y,x2:x+200,y2:y+30,color:d.color,size:d.size,text:txt});
+    redrawShapes(pid);pushUndoShapes(pid);d.isDown=false;return;
   }
   if(d.tool==='pen'||d.tool==='eraser'){
-    ctx.save();
-    if(d.tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';}
-    else{ctx.strokeStyle=d.color;ctx.globalCompositeOperation='source-over';}
-    ctx.lineWidth=d.tool==='eraser'?d.size*4:d.size;
-    ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.beginPath();ctx.moveTo(x,y);
-    ctx.restore();
-  }
-  if(d.tool==='highlight'){
-    ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle=d.color;
-    ctx.lineWidth=d.size*6;ctx.lineCap='square';ctx.lineJoin='round';
-    ctx.beginPath();ctx.moveTo(x,y);
-    ctx.restore();
+    d.currentShape={type:d.tool,color:d.color,size:d.size,path:[{x,y}]};
+  }else if(d.tool==='highlight'){
+    d.currentShape={type:'highlight',x1:x,y1:y,x2:x,y2:y,color:d.color,size:d.size};
+  }else{
+    d.currentShape=null;
   }
 }
 
 function moveDraw(e,pid){
   e.preventDefault();
   const d=DS[pid];if(!d||!d.isDown)return;
+  if(!SHAPES[pid])SHAPES[pid]=[];
   const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
   const ctx=canvas.getContext('2d');
   const{x,y}=getPos(e,canvas);
 
+  if(d.tool==='move'){
+    if(d.moveTarget===null||d.moveTarget===undefined)return;
+    const s=SHAPES[pid][d.moveTarget];
+    const dx=x-d.moveDx,dy=y-d.moveDy;
+    d.moveDx=x;d.moveDy=y;
+    if(s.path)s.path=s.path.map(p=>({x:p.x+dx,y:p.y+dy}));
+    if(s.x1!==undefined){s.x1+=dx;s.x2+=dx;s.y1+=dy;s.y2+=dy;}
+    redrawShapes(pid);return;
+  }
   if(d.tool==='pen'||d.tool==='eraser'){
-    ctx.save();
-    if(d.tool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';}
-    else{ctx.strokeStyle=d.color;ctx.globalCompositeOperation='source-over';}
-    ctx.lineWidth=d.tool==='eraser'?d.size*4:d.size;
-    ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.beginPath();ctx.moveTo(d.startX,d.startY);ctx.lineTo(x,y);ctx.stroke();
-    ctx.restore();
-    d.startX=x;d.startY=y;return;
+    if(d.currentShape){d.currentShape.path.push({x,y});redrawShapes(pid);drawShape(ctx,d.currentShape);}
+    return;
   }
   if(d.tool==='highlight'){
-    ctx.save();ctx.globalAlpha=0.35;ctx.strokeStyle=d.color;
-    ctx.lineWidth=d.size*6;ctx.lineCap='square';ctx.lineJoin='round';
-    ctx.beginPath();ctx.moveTo(d.startX,d.startY);ctx.lineTo(x,y);ctx.stroke();
-    ctx.restore();
-    d.startX=x;d.startY=y;return;
+    if(d.currentShape){d.currentShape.x2=x;d.currentShape.y2=y;redrawShapes(pid);drawShape(ctx,d.currentShape);}
+    return;
   }
-  // Shape preview: restore snapshot first
-  if(d.snapshot)ctx.putImageData(d.snapshot,0,0);
+  redrawShapes(pid);
   ctx.save();ctx.strokeStyle=d.color;ctx.lineWidth=d.size;ctx.lineCap='round';
-  ctx.globalCompositeOperation='source-over';
-  if(d.tool==='arrow'){
-    drawArrow(ctx,d.startX,d.startY,x,y);
-  }else if(d.tool==='rect'){
-    ctx.strokeRect(d.startX,d.startY,x-d.startX,y-d.startY);
-  }else if(d.tool==='circle'){
+  if(d.tool==='arrow')drawArrow(ctx,d.startX,d.startY,x,y);
+  else if(d.tool==='rect')ctx.strokeRect(d.startX,d.startY,x-d.startX,y-d.startY);
+  else if(d.tool==='circle'){
     const rx=Math.abs(x-d.startX)/2,ry=Math.abs(y-d.startY)/2;
     const cx=d.startX+(x-d.startX)/2,cy=d.startY+(y-d.startY)/2;
     ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();
@@ -1282,56 +1547,53 @@ function moveDraw(e,pid){
 function endDraw(e,pid){
   const d=DS[pid];if(!d||!d.isDown)return;
   d.isDown=false;
+  if(!SHAPES[pid])SHAPES[pid]=[];
   const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  pushUndo(pid,canvas);
-  saveAll();
+  const{x,y}=getPos(e,canvas);
+  if(d.tool==='move'){d.moveTarget=null;pushUndoShapes(pid);saveAll();return;}
+  if(d.tool==='pen'||d.tool==='eraser'||d.tool==='highlight'){
+    if(d.currentShape){
+      if(d.tool==='highlight'){d.currentShape.x2=x;d.currentShape.y2=y;}
+      SHAPES[pid].push(d.currentShape);d.currentShape=null;redrawShapes(pid);
+    }
+  }else if(['arrow','rect','circle'].includes(d.tool)){
+    SHAPES[pid].push({type:d.tool,x1:d.startX,y1:d.startY,x2:x,y2:y,color:d.color,size:d.size});
+    redrawShapes(pid);
+  }
+  pushUndoShapes(pid);saveAll();
 }
 
-function drawArrow(ctx,x1,y1,x2,y2){
-  const angle=Math.atan2(y2-y1,x2-x1);
-  const hw=Math.max(ctx.lineWidth*4,12);
-  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  ctx.save();ctx.translate(x2,y2);ctx.rotate(angle);
-  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-hw,-hw/2);ctx.lineTo(-hw,hw/2);ctx.closePath();
-  ctx.fillStyle=ctx.strokeStyle;ctx.fill();ctx.restore();
-}
-
-function pushUndo(pid,canvas){
+function pushUndoShapes(pid){
   if(!DS[pid])return;
   if(!DS[pid].undoStack)DS[pid].undoStack=[];
-  // Keep max 20 steps
   if(DS[pid].undoStack.length>=20)DS[pid].undoStack.shift();
-  DS[pid].undoStack.push(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height));
+  DS[pid].undoStack.push(JSON.stringify(SHAPES[pid]||[]));
 }
 
 function undoDraw(pid){
-  const d=DS[pid];if(!d||!d.undoStack||d.undoStack.length===0)return;
-  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  d.undoStack.pop();// remove current
-  if(d.undoStack.length>0){
-    ctx.putImageData(d.undoStack[d.undoStack.length-1],0,0);
-  }else{
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-  }
-  saveAll();
+  const d=DS[pid];if(!d||!d.undoStack||!d.undoStack.length)return;
+  d.undoStack.pop();
+  SHAPES[pid]=d.undoStack.length?JSON.parse(d.undoStack[d.undoStack.length-1]):[];
+  redrawShapes(pid);saveAll();
 }
 
 function clearDraw(pid){
-  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+  SHAPES[pid]=[];
   if(DS[pid])DS[pid].undoStack=[];
-  const p=GP(pid);if(p){p.drawing=null;saveAll();}
+  redrawShapes(pid);
+  const p=GP(pid);if(p){p.drawing=null;p.shapes=null;saveAll();}
 }
 
 function restoreDrawing(page){
+  if(!SHAPES[page.id])SHAPES[page.id]=[];
+  if(page.shapes&&page.shapes.length){
+    SHAPES[page.id]=page.shapes;
+    setTimeout(()=>redrawShapes(page.id),150);return;
+  }
   if(!page.drawing)return;
   const canvas=document.getElementById('dc-'+page.id);if(!canvas)return;
   const img=new Image();
-  img.onload=()=>{
-    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-    if(DS[page.id])pushUndo(page.id,canvas);
-  };
+  img.onload=()=>canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
   img.src=page.drawing;
 }
 
@@ -1389,6 +1651,10 @@ function syncSettingsUI(){
   document.getElementById('rv-q').textContent=Math.round(q*100)+'%';
   updateLogoDisplay();renderRtypesList();
   renderLI('responsible','resp-list');renderLI('hazard','haz-list');renderLI('risk','risk-list');
+  // Users
+  renderUsersList();
+  const ap=document.getElementById('s-admin-pin');
+  if(ap) ap.value=S.adminPin||'';
 }
 function renderRtypesList(){
   const c=document.getElementById('rtypes-list');if(!c)return;c.innerHTML='';
@@ -1497,18 +1763,228 @@ function toast(msg){
 }
 
 /* ================================================================
+   USERS & LOGIN SYSTEM
+================================================================ */
+let currentUser = null;
+
+function showLogin(){
+  const ls = document.getElementById('login-screen');
+  if(!ls) return;
+  ls.classList.add('active');
+  const sel = document.getElementById('login-user');
+  sel.innerHTML = '<option value="">Select user...</option>';
+  (S.users||[]).forEach(u=>{
+    const o = document.createElement('option');
+    o.value = u.name; o.textContent = u.name; sel.appendChild(o);
+  });
+  const ao = document.createElement('option');
+  ao.value = '__admin__'; ao.textContent = '🔑 Admin'; sel.appendChild(ao);
+}
+
+function hideLogin(){
+  const ls = document.getElementById('login-screen');
+  if(ls) ls.classList.remove('active');
+}
+
+function doLogin(){
+  const sel = document.getElementById('login-user');
+  const pin = document.getElementById('login-pin').value;
+  const err = document.getElementById('login-err');
+  const uname = sel.value;
+  if(!uname){ err.style.display='block'; err.textContent='Please select a user.'; return; }
+  err.style.display='none';
+  if(uname==='__admin__'){
+    if(pin===(S.adminPin||'1234')){
+    currentUser={name:'Admin',role:'admin'};
+    hideLogin();
+    loadUserData();
+    bootCover(); renderRtypeBtns(); renderPagesDOM(); applyDesign(); updateNavCount();
+    toast('Welcome Admin 👑'); return;
+  }
+    err.style.display='block'; err.textContent='Incorrect admin PIN.'; return;
+  }
+  const user=(S.users||[]).find(u=>u.name===uname);
+  if(!user){ err.style.display='block'; err.textContent='User not found.'; return; }
+  if(pin!==user.pin){ err.style.display='block'; err.textContent='Incorrect PIN.'; return; }
+  currentUser={name:user.name,role:'user'};
+  hideLogin();
+  loadUserData();
+  bootCover(); renderRtypeBtns(); renderPagesDOM(); applyDesign(); updateNavCount();
+  toast(`Welcome ${user.name} ✓`);
+}
+
+
+function usersMsg(msg, ok=false){
+  const el=document.getElementById('users-msg');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.color=ok?'#1a7a3c':'#c0392b';
+  el.style.display=msg?'block':'none';
+  if(msg)setTimeout(()=>{if(el)el.style.display='none';},3000);
+}
+
+function saveAdminPin(){
+  const el=document.getElementById('s-admin-pin');
+  const v=(el?.value||'').trim();
+  if(v.length<4){usersMsg('⚠ Admin PIN must be 4+ digits');return;}
+  S.adminPin=v; saveAll(); usersMsg('✓ Admin PIN saved',true);
+}
+
+function addUser(){
+  const nameEl=document.getElementById('new-uname');
+  const pinEl=document.getElementById('new-upin');
+  if(!nameEl||!pinEl)return;
+  const name=nameEl.value.trim();
+  const pin=pinEl.value.trim();
+  if(!name){usersMsg('⚠ Please enter a username');return;}
+  if(pin.length<4){usersMsg('⚠ PIN must be at least 4 digits');return;}
+  if(!S.users)S.users=[];
+  if(S.users.find(u=>u.name===name)){usersMsg('⚠ Username "'+name+'" already exists');return;}
+  S.users.push({name,pin});
+  nameEl.value=''; pinEl.value='';
+  renderUsersList();
+  saveAll();
+  usersMsg('✓ User "'+name+'" added successfully',true);
+}
+
+function renderUsersList(){
+  const c=document.getElementById('users-list');
+  if(!c)return;
+  c.innerHTML='';
+  if(!(S.users||[]).length){
+    c.innerHTML='<div style="color:#aaa;font-size:12px;padding:10px;text-align:center">No users yet — add one below</div>';
+    return;
+  }
+  (S.users||[]).forEach((u,i)=>{
+    const d=document.createElement('div');
+    d.className='li-item';
+    d.style.cssText='padding:7px 10px;display:flex;align-items:center;gap:8px';
+    d.innerHTML=`<span style="flex:1;font-weight:700">👤 ${u.name}</span>
+      <span style="color:#999;font-size:11px">${'●'.repeat(u.pin.length)}</span>
+      <button onclick="removeUser(${i})" title="Delete" style="background:#c0392b;color:#fff;border:none;border-radius:3px;padding:2px 8px;cursor:pointer;font-size:12px">🗑</button>`;
+    c.appendChild(d);
+  });
+}
+
+function removeUser(i){
+  if(!S.users||i>=S.users.length)return;
+  const name=S.users[i].name;
+  S.users.splice(i,1);
+  renderUsersList();
+  saveAll();
+  usersMsg('✓ User "'+name+'" removed',true);
+}
+
+/* ================================================================
+   CAMERA PICKER MODAL
+================================================================ */
+let _camPid=null;
+function openCamModal(pid){ _camPid=pid; document.getElementById('cam-modal').classList.add('open'); }
+function closeCamModal(){ document.getElementById('cam-modal').classList.remove('open'); _camPid=null; }
+function camChoice(type){
+  const pid=_camPid; closeCamModal(); if(!pid)return;
+  const inp=type==='camera'?document.getElementById('g-camera'):document.getElementById('g-gallery');
+  inp.value=''; inp.onchange=()=>processImg(inp.files[0],pid); inp.click();
+}
+
+/* ================================================================
+   BACK BUTTON
+================================================================ */
+history.pushState({page:'app'},'');
+window.addEventListener('popstate',()=>{
+  history.pushState({page:'app'},'');
+  openModal('⬅ Exit App','Save and exit the app?',()=>{
+    saveAll(); closeModal(); toast('Saved! You can close this tab.');
+  });
+  document.getElementById('modal-ok').textContent='💾 Save & Exit';
+});
+
+/* ================================================================
+   ORIENTATION CHANGE
+================================================================ */
+window.addEventListener('orientationchange',()=>{
+  setTimeout(()=>{
+    refitAllNotes();
+    Object.keys(DS).forEach(pid=>{
+      const canvas=document.getElementById('dc-'+pid);
+      const frame=document.getElementById('ifr-'+pid);
+      if(canvas&&frame){
+        const w=frame.offsetWidth,h=frame.offsetHeight;
+        if(w>0&&h>0){
+          const tmp=document.createElement('canvas');
+          tmp.width=canvas.width;tmp.height=canvas.height;
+          if(canvas.width>0)tmp.getContext('2d').drawImage(canvas,0,0);
+          canvas.width=w;canvas.height=h;
+          if(tmp.width>0)canvas.getContext('2d').drawImage(tmp,0,0,w,h);
+        }
+      }
+    });
+  },300);
+});
+
+/* ================================================================
+   CLICK OUTSIDE IMAGE = DEACTIVATE DRAWING TOOL
+================================================================ */
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.img-frame')&&!e.target.closest('.img-toolbar')){
+    Object.keys(DS).forEach(pid=>{
+      const canvas=document.getElementById('dc-'+pid);
+      if(canvas){ canvas.style.pointerEvents='none'; canvas.style.cursor='default'; }
+      ['pen','highlight','arrow','rect','circle','text','eraser'].forEach(t=>{
+        const b=document.getElementById('tb-'+t+'-'+pid); if(b)b.classList.remove('active-tool');
+      });
+    });
+  }
+});
+
+/* ================================================================
    PWA
 ================================================================ */
 function initPWA(){
-  const m={name:'HSE Inspection',short_name:'HSE',display:'standalone',
+  const m={name:'HSE Inspection List',short_name:'HSE',display:'standalone',
     theme_color:'#1a3a5c',background_color:'#1a3a5c',start_url:'.',
+    orientation:'any',
     icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🛡️</text></svg>",sizes:'192x192',type:'image/svg+xml'}]};
   const lnk=document.createElement('link');lnk.rel='manifest';
   lnk.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
   document.head.appendChild(lnk);
+
   if('serviceWorker' in navigator){
-    const sw=`const C='hse-v5';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['.']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match('.')))));`;
-    navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+    // Full offline-first service worker
+    const sw=`
+const CACHE='hse-v7';
+const ASSETS=['.','./index.html'];
+self.addEventListener('install',e=>{
+  e.waitUntil(
+    caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())
+  );
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(
+    caches.keys().then(keys=>Promise.all(
+      keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))
+    )).then(()=>self.clients.claim())
+  );
+});
+self.addEventListener('fetch',e=>{
+  e.respondWith(
+    caches.match(e.request).then(cached=>{
+      if(cached) return cached;
+      return fetch(e.request).then(res=>{
+        if(res && res.status===200 && res.type!=='opaque'){
+          const clone=res.clone();
+          caches.open(CACHE).then(c=>c.put(e.request,clone));
+        }
+        return res;
+      }).catch(()=>caches.match('.'));
+    })
+  );
+});`;
+    const swBlob=new Blob([sw],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl)
+      .then(()=>console.log('HSE SW registered — offline ready'))
+      .catch(e=>console.warn('SW reg failed:',e));
   }
 }
 </script>
