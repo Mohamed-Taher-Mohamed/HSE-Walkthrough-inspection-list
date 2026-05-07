@@ -542,16 +542,16 @@ function initPWA(){
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
-        const reg = await navigator.serviceWorker.register(
-          './sw.js'
-        );
+        const reg = await navigator.serviceWorker.register('./sw.js');
         console.log('✅ Service Worker Registered', reg);
       } catch(err){
         console.error('❌ SW Error:', err);
       }
     });
   }
-  initPWA();
+}
+initPWA();
+</script>
   // Install prompt
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => {
