@@ -30,7 +30,7 @@
   --risk-med-bg:#f3e8ff;--risk-med-border:#8e44ad;
   --risk-low-bg:#fffbe5;--risk-low-border:#c8a000;
   --fn-lbl:13px;--fn-val:13px;--fn-note:52px;--fn-sp-lbl:12px;--fn-sp-val:13px;
-  --img-fit:cover;
+  --img-fit:contain;
   --page-w:1346px;--page-h:748px;--note-h:120px;--sp-w:222px;
 }
 /* ================================================================ RESET */
@@ -85,16 +85,18 @@ input,select,textarea,button{font-family:inherit}
 .cv-logo-box{
   background:#fff;
   flex:1;
-  display:flex;align-items:stretch;justify-content:stretch;
+  display:flex;align-items:center;justify-content:center;
   padding:0;
   min-height:120px;
   overflow:hidden;
 }
 .cv-logo-box img{
-  width:100%;height:100%;
-  object-fit:cover;
+  /* fills full height of the box, keeps aspect ratio, centers if narrower */
+  height:100%;
+  width:100%;
+  object-fit:contain;
+  object-position:center;
   display:block;
-  flex:1;
 }
 .cv-logo-ph{color:#aaa;font-size:18px;padding:20px;align-self:center;margin:auto}
 .cv-company{
@@ -461,12 +463,9 @@ input[type=range]{accent-color:var(--primary);flex:1}
 @media(max-width:900px){
   :root{--sp-w:180px;--note-h:100px}
   .cover-page,.rp{width:100%!important;height:auto!important;min-height:unset!important}
-  .cv-fields{flex-direction:column;gap:10px}
-  .cv-col-left,.cv-col-right{width:100%}
   .cv-lbl{font-size:18px!important;min-width:120px!important;padding:7px 14px!important}
   .cv-val{font-size:16px!important;padding:7px 12px!important}
   .cv-company{font-size:28px!important;padding:10px 16px!important}
-  .cv-logo-box{max-width:50%!important}
   .rp-upper{flex-direction:row}
   .sp{width:var(--sp-w)!important;min-width:150px!important}
   .note-frame{height:auto;min-height:80px}
@@ -485,31 +484,24 @@ input[type=range]{accent-color:var(--primary);flex:1}
   .nav-center,.nav-right{flex-wrap:wrap;gap:4px}
   .nbtn{padding:4px 8px;font-size:11px}
   .nbtn.add{font-size:12px;padding:5px 12px}
-  .cover-page,.rp{width:100%!important;height:auto!important;min-height:unset!important;border-radius:0!important}
-  .cv-hdr{flex-direction:column;gap:10px;padding:12px 14px;align-items:stretch}
-  .cv-logo-box{max-width:100%!important;min-height:70px!important}
-  .cv-logo-box img{max-height:70px!important}
-  .cv-company{font-size:20px!important;padding:8px 12px!important}
-  .cv-fields{padding:10px 14px;flex-direction:column;gap:8px}
-  .cv-lbl{font-size:14px!important;min-width:90px!important;padding:5px 10px!important}
-  .cv-val{font-size:13px!important;padding:5px 10px!important}
-  .cv-rtype{padding:10px 14px;flex-direction:column;gap:12px}
-  .cv-legend{min-width:unset;width:100%}
+  /* Cover + rp pages: scale transform via JS to keep proportions */
+  .cover-page{transform-origin:top left;border-radius:0!important;box-shadow:none!important}
+  .rp{transform-origin:top left;box-shadow:var(--shadow)!important}
+  #cover-view{overflow:hidden;width:100%}
+  /* Color palette full visibility */
+  .c2{grid-template-columns:1fr!important}
+  input[type=color]{width:42px!important;height:32px!important}
   .rp-bar{flex-wrap:wrap;height:auto;padding:4px 8px}
-  .rp-upper{flex-direction:column}
-  .sp{width:100%!important;min-width:unset!important;border-right:none!important;border-bottom:2px solid var(--sp-border)}
-  .img-frame{min-height:200px}
   .note-frame{height:auto;min-height:80px}
   .note-ta{min-height:80px;overflow-y:auto!important;font-size:18px!important}
   .sg{grid-template-columns:1fr}
   .sc.full{grid-column:1/-1}
-  .c2{grid-template-columns:1fr}
   .img-toolbar{padding:3px 5px;gap:3px}
   .tb-btn{padding:3px 6px!important;font-size:10px!important}
-  #main{padding:8px}
+  #main{padding:6px}
 }
 
-/* ---- Mobile landscape (height ≤500px) ---- */
+/* ---- Mobile landscape ---- */
 @media(max-height:500px) and (orientation:landscape){
   #topnav{height:42px;padding:0 8px}
   .nav-title{font-size:12px}
@@ -521,7 +513,7 @@ input[type=range]{accent-color:var(--primary);flex:1}
   .note-ta{font-size:14px!important}
 }
 
-/* ---- Landscape orientation: always show pages side-by-side ---- */
+/* ---- Landscape: side-by-side ---- */
 @media(orientation:landscape) and (max-width:900px){
   .rp-upper{flex-direction:row!important}
   .sp{width:180px!important;min-width:160px!important;border-right:2px solid var(--sp-border)!important;border-bottom:none!important}
@@ -908,7 +900,7 @@ const DEF={
   hazard:['Housekeeping','Electrical Hazard','Fire Hazard','Chemical Hazard','Mechanical Hazard',
     'Working at Height','Manual Handling','Slips & Trips','PPE Violation','Environmental Hazard'],
   risk:['Low','Medium','High'],
-  pages:[],imgW:1080,imgH:720,imgFit:'cover',imgQuality:0.85,design:{},
+  pages:[],imgW:1080,imgH:720,imgFit:'contain',imgQuality:0.85,design:{},
   users:[],adminPin:''
 };
 let S=JSON.parse(JSON.stringify(DEF));
@@ -1015,6 +1007,7 @@ window.addEventListener('load',()=>{
   applyDesign();
   updateNavCount();
   initPWA();
+  setTimeout(applyMobileScale, 400);
   // Show login if users configured
   if((S.users||[]).length>0 || S.adminPin){
     showLogin();
@@ -1113,12 +1106,9 @@ function renderPagesDOM(){
   document.getElementById('page-count').textContent=S.pages.length;
   updateNavCount();
   setTimeout(()=>{
-    S.pages.forEach(p=>{
-      restoreDrawing(p);
-      const ta=document.getElementById('ta-'+p.id);
-      const nf=document.getElementById('nf-'+p.id);
-      if(ta&&nf)fitTA(ta,nf);
-    });
+    S.pages.forEach(p=>{restoreDrawing(p);});
+    refitAllNotes();
+    applyMobileScale();
   },120);
 }
 
@@ -1375,14 +1365,11 @@ function refitAllNotes(){
    IMAGE HANDLING
 ================================================================ */
 function pickImg(pid, cam){
-  if('ontouchstart' in window || navigator.maxTouchPoints > 0){
-    // Mobile/tablet: show choice modal
-    openCamModal(pid);
-  } else {
-    // Desktop: direct file picker
-    const inp=cam?document.getElementById('g-camera'):document.getElementById('g-gallery');
-    inp.value=''; inp.onchange=()=>processImg(inp.files[0],pid); inp.click();
-  }
+  // Always go direct — no popup modal needed, browser handles the choice
+  const inp = cam ? document.getElementById('g-camera') : document.getElementById('g-gallery');
+  inp.value='';
+  inp.onchange=()=>processImg(inp.files[0], pid);
+  inp.click();
 }
 function processImg(file,pid){
   if(!file)return;
@@ -1683,34 +1670,90 @@ function restoreDrawing(page){
 }
 
 /* ================================================================
-   SPEECH RECOGNITION
+   SPEECH RECOGNITION — fixed for all browsers + mobile
 ================================================================ */
 let _rec=null,_recPid=null;
-function toggleMic(pid){
+
+async function toggleMic(pid){
   const btn=document.getElementById('mic-'+pid);
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){toast('Speech Recognition not supported in this browser');return;}
-  if(_rec&&_recPid===pid){_rec.stop();return;}
-  if(_rec)_rec.stop();
-  _recPid=pid;_rec=new SR();_rec.lang='ar-EG';_rec.continuous=true;_rec.interimResults=true;
-  if(btn)btn.classList.add('rec');
-  let final='';
+  if(!SR){
+    toast('⚠ Speech Recognition not supported. Use Chrome or Edge.');
+    return;
+  }
+
+  // Stop if already recording for this page
+  if(_rec&&_recPid===pid){
+    _rec.stop();
+    return;
+  }
+  // Stop any other recording
+  if(_rec){ _rec.stop(); _rec=null; _recPid=null; }
+
+  // Request mic permission first (needed on mobile)
+  try{
+    await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    toast('⚠ Microphone permission denied. Allow mic in browser settings.');
+    return;
+  }
+
+  // Focus the textarea so text appears there
+  const ta=document.getElementById('ta-'+pid);
+  if(ta) ta.focus();
+
+  _recPid=pid;
+  _rec=new SR();
+  _rec.lang='ar-EG';        // Arabic (Egypt) — works for Arabic and English mixed
+  _rec.continuous=true;
+  _rec.interimResults=true;
+  _rec.maxAlternatives=1;
+
+  if(btn) btn.classList.add('rec');
+
+  let finalText='';
+
+  _rec.onstart=()=>{
+    toast('🎤 Recording... tap 🎤 again to stop');
+  };
+
   _rec.onresult=e=>{
     let interim='';
     for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
+      if(e.results[i].isFinal) finalText+=e.results[i][0].transcript+' ';
       else interim+=e.results[i][0].transcript;
     }
-    const ta=document.getElementById('ta-'+pid);
-    if(ta){ta.value=final+interim;fitTA(ta,document.getElementById('nf-'+pid));}
+    if(ta){
+      ta.value=finalText+interim;
+      shrinkIfNeeded(ta);
+    }
   };
-  _rec.onerror=e=>{if(btn)btn.classList.remove('rec');toast('Mic: '+e.error);_rec=null;_recPid=null;};
+
+  _rec.onerror=e=>{
+    if(btn) btn.classList.remove('rec');
+    const errMap={
+      'no-speech':'No speech detected. Try speaking louder.',
+      'not-allowed':'Microphone access denied.',
+      'network':'Network error — check connection.',
+      'aborted':'Recording stopped.',
+    };
+    toast('🎤 '+(errMap[e.error]||'Error: '+e.error));
+    _rec=null; _recPid=null;
+  };
+
   _rec.onend=()=>{
-    if(btn)btn.classList.remove('rec');
-    const ta=document.getElementById('ta-'+pid);if(ta)UF(pid,'note',ta.value);
-    _rec=null;_recPid=null;
+    if(btn) btn.classList.remove('rec');
+    if(ta) UF(pid,'note',ta.value);
+    _rec=null; _recPid=null;
   };
-  _rec.start();toast('🎤 Recording... tap mic again to stop');
+
+  try{
+    _rec.start();
+  }catch(e){
+    if(btn) btn.classList.remove('rec');
+    toast('⚠ Could not start recording: '+e.message);
+    _rec=null; _recPid=null;
+  }
 }
 
 /* ================================================================
@@ -1848,8 +1891,50 @@ function toast(msg){
 }
 
 /* ================================================================
+   MOBILE SCALE — keep desktop proportions on small screens
+   Uses CSS transform:scale() so cover + pages look identical to web
+================================================================ */
+function applyMobileScale(){
+  const vw = window.innerWidth;
+  const DESIGN_W = 1346;
+  const DESIGN_H = 748;
+
+  if(vw >= 900){
+    // Desktop — reset any transforms
+    document.querySelectorAll('.cover-page,.rp').forEach(el=>{
+      el.style.transform=''; el.style.width=''; el.style.marginBottom='';
+    });
+    const cvv=document.getElementById('cover-view');
+    if(cvv) cvv.style.height='';
+    return;
+  }
+
+  const scale = vw / DESIGN_W;
+
+  document.querySelectorAll('.cover-page').forEach(el=>{
+    el.style.width=DESIGN_W+'px';
+    el.style.height=DESIGN_H+'px';
+    el.style.transform='scale('+scale+')';
+    el.style.marginBottom=Math.round((DESIGN_H*scale)-DESIGN_H)+'px';
+  });
+  document.querySelectorAll('.rp').forEach(el=>{
+    el.style.width=DESIGN_W+'px';
+    el.style.height=DESIGN_H+'px';
+    el.style.transform='scale('+scale+')';
+    el.style.marginBottom=Math.round((DESIGN_H*scale)-DESIGN_H+20)+'px';
+    el.style.marginLeft='0';
+  });
+
+  // Set cover-view height to match scaled result
+  const cvv=document.getElementById('cover-view');
+  if(cvv) cvv.style.height=Math.round(DESIGN_H*scale+20)+'px';
+}
+
+window.addEventListener('resize', applyMobileScale);
+window.addEventListener('orientationchange', ()=>setTimeout(applyMobileScale,350));
+
+/* ================================================================
    USERS & LOGIN — now handled by AUTH module below
-   currentUser is set by auth module after login
 ================================================================ */
 let currentUser = null;
 
@@ -2721,14 +2806,12 @@ function doChangePassword(){
    ADMIN PANEL — lives inside Settings → Users tab (sp4)
 ================================================================ */
 function showAdminNavBtn(){
-  if(document.getElementById('admin-nav-btn')) return;
-  const btn=document.createElement('button');
-  btn.id='admin-nav-btn';
-  btn.className='nbtn';
-  btn.innerHTML='🔑 Admin';
-  btn.style.background='#7d3c98';
-  btn.onclick=()=>{ showView('settings'); showSTab(4); };
-  document.querySelector('.nav-right').insertBefore(btn, document.querySelector('.nav-right').firstChild);
+  // Update the merged account button to show admin style
+  const btn=document.getElementById('account-nav-btn');
+  if(btn){
+    btn.innerHTML='🔑 Admin / Account';
+    btn.style.background='#7d3c98';
+  }
 }
 
 // openAdminPanel now just opens settings sp4
@@ -2786,24 +2869,27 @@ function deleteAuthUser(username){
   toast('User deleted');
 }
 
-// After app loads — inject nav buttons
+// After app loads — inject nav buttons (merged Account/Admin)
 window.addEventListener('load',()=>{
   setTimeout(()=>{
     if(isLoggedIn()){
       const navRight=document.querySelector('.nav-right');
       if(navRight&&!document.getElementById('logout-nav-btn')){
+        // Single merged Account/Admin button
+        const ub=document.createElement('button');
+        ub.id='account-nav-btn';
+        ub.className='nbtn';
+        ub.innerHTML=isAdmin()?'🔑 Admin / Account':'👤 Account';
+        ub.style.background=isAdmin()?'#7d3c98':'rgba(255,255,255,.14)';
+        ub.onclick=()=>{showView('settings');showSTab(4);};
+        navRight.appendChild(ub);
+        // Logout button
         const lb=document.createElement('button');
         lb.id='logout-nav-btn';lb.className='nbtn';
         lb.innerHTML='🚪 Logout';
         lb.style.background='rgba(192,57,43,.85)';
         lb.onclick=authLogout;
         navRight.appendChild(lb);
-        const ub=document.createElement('button');
-        ub.className='nbtn';
-        ub.innerHTML='👤 Account';
-        ub.onclick=()=>{showView('settings');showSTab(4);};
-        navRight.appendChild(ub);
-        if(isAdmin()) showAdminNavBtn();
       }
     }
   },500);
