@@ -1,4 +1,4 @@
-const CACHE = "hse-cache-v3";
+const CACHE = "hse-cache-v4";
 const FILES = [
   "./",
   "./index.html",
