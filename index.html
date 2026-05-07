@@ -542,7 +542,7 @@ function initPWA(){
     window.addEventListener('load', async () => {
       try {
         const reg = await navigator.serviceWorker.register(
-          '/HSE-Walkthrough-inspection-list/sw.js'
+          './sw.js'
         );
         console.log('✅ Service Worker Registered', reg);
       } catch(err){
@@ -550,6 +550,7 @@ function initPWA(){
       }
     });
   }
+  initPWA();
   // Install prompt
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => {
