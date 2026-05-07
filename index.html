@@ -2390,57 +2390,6 @@ document.addEventListener('click',e=>{
     });
   }
 });
-
-/* ================================================================
-   PWA
-================================================================ */
-function initPWA(){
-  const m={name:'HSE Inspection List',short_name:'HSE',display:'standalone',
-    theme_color:'#1a3a5c',background_color:'#1a3a5c',start_url:'.',
-    orientation:'any',
-    icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>🛡️</text></svg>",sizes:'192x192',type:'image/svg+xml'}]};
-  const lnk=document.createElement('link');lnk.rel='manifest';
-  lnk.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
-  document.head.appendChild(lnk);
-
-  if('serviceWorker' in navigator){
-    // Full offline-first service worker
-    const sw=`
-const CACHE='hse-v7';
-const ASSETS=['.','./index.html'];
-self.addEventListener('install',e=>{
-  e.waitUntil(
-    caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())
-  );
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(
-    caches.keys().then(keys=>Promise.all(
-      keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))
-    )).then(()=>self.clients.claim())
-  );
-});
-self.addEventListener('fetch',e=>{
-  e.respondWith(
-    caches.match(e.request).then(cached=>{
-      if(cached) return cached;
-      return fetch(e.request).then(res=>{
-        if(res && res.status===200 && res.type!=='opaque'){
-          const clone=res.clone();
-          caches.open(CACHE).then(c=>c.put(e.request,clone));
-        }
-        return res;
-      }).catch(()=>caches.match('.'));
-    })
-  );
-});`;
-    const swBlob=new Blob([sw],{type:'application/javascript'});
-    const swUrl=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl)
-      .then(()=>console.log('HSE SW registered — offline ready'))
-      .catch(e=>console.warn('SW reg failed:',e));
-  }
-}
 </script>
 <!-- ================================================================
   AUTH SCREENS — Login / Register / Admin Panel
