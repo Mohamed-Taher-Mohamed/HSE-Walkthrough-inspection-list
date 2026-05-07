@@ -1,22 +1,22 @@
-const CACHE = "hse-cache-v4";
+const CACHE = "hse-cache-v10";
 const FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./iconn-192.png",
+  "./iconn-512.png",
   "./script.js",
   "./style.css"
 ];
-self.addEventListener("install", e => {
+self.addEventListener("install", event => {
   self.skipWaiting();
-  e.waitUntil(
+  event.waitUntil(
     caches.open(CACHE)
       .then(cache => cache.addAll(FILES))
   );
 });
-self.addEventListener("activate", e => {
-  e.waitUntil(
+self.addEventListener("activate", event => {
+  event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
@@ -29,17 +29,11 @@ self.addEventListener("activate", e => {
   );
   self.clients.claim();
 });
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request)
-      .then(res => {
-        return res || fetch(e.request)
-          .then(networkRes => {
-            caches.open(CACHE).then(cache => {
-              cache.put(e.request, networkRes.clone());
-            });
-            return networkRes;
-          })
+self.addEventListener("fetch", event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        return response || fetch(event.request)
           .catch(() => caches.match("./index.html"));
       })
   );
