@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a3a5c">
-<meta name="screen-orientation" content="any">
+<meta name="screen-orientation" content="landscape">
 <link rel="manifest" href="manifest.json">
 <title>HSE Walkthrough Inspection List</title>
 <style>
@@ -530,6 +530,60 @@ input[type=range]{accent-color:var(--primary);flex:1}
 }
 </style>
 </head>
+<script>
+/* =========================
+   PWA + SERVICE WORKER
+========================= */
+function initPWA(){
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        const reg = await navigator.serviceWorker.register(
+          '/HSE-Walkthrough-inspection-list/sw.js'
+        );
+        console.log('✅ Service Worker Registered', reg);
+      } catch(err){
+        console.error('❌ SW Error:', err);
+      }
+    });
+  }
+  // Install prompt
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.createElement('button');
+    btn.id = 'install-pwa-btn';
+    btn.innerHTML = '📲 Install App';
+    btn.style.cssText = `
+      position:fixed;
+      bottom:20px;
+      left:20px;
+      z-index:99999;
+      background:#1a7a3c;
+      color:#fff;
+      border:none;
+      padding:12px 18px;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    `;
+    btn.onclick = async () => {
+      btn.remove();
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      console.log(choice.outcome);
+      deferredPrompt = null;
+    };
+    if(!document.getElementById('install-pwa-btn')){
+      document.body.appendChild(btn);
+    }
+  });
+}
+</script>
 <body>
 <div id="app">
 
