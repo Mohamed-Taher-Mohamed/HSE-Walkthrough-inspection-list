@@ -4,7 +4,9 @@ const FILES = [
   "./index.html",
   "./manifest.json",
   "./icon-192.png",
-  "./icon-512.png"
+  "./icon-512.png",
+  "./script.js",
+  "./style.css"
 ];
 self.addEventListener("install", e => {
   self.skipWaiting();
