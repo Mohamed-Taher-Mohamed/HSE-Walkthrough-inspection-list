@@ -1,9 +1,9 @@
 {
   "name": "HSE Walkthrough",
   "short_name": "HSE",
-  "id": "/HSE-Walkthrough-inspection-list/",
-  "start_url": "/HSE-Walkthrough-inspection-list/",
-  "scope": "/HSE-Walkthrough-inspection-list/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
   "background_color": "#ffffff",
