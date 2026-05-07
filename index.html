@@ -82,23 +82,33 @@ input,select,textarea,button{font-family:inherit}
   justify-content:space-between;padding:0;gap:0;
   flex-shrink:0;overflow:hidden;
 }
+:root{
+  --logo-h:160px; /* controllable from settings */
+}
 .cv-logo-box{
   background:#fff;
   flex:1;
-  display:flex;align-items:center;justify-content:center;
-  padding:0;
-  min-height:120px;
+  position:relative;
+  min-height:var(--logo-h);
+  height:var(--logo-h);
   overflow:hidden;
+  display:block;
 }
 .cv-logo-box img{
-  /* fills full height of the box, keeps aspect ratio, centers if narrower */
-  height:100%;
+  /* Absolutely fill the entire box — no gaps */
+  position:absolute;
+  inset:0;
   width:100%;
+  height:100%;
   object-fit:contain;
   object-position:center;
   display:block;
 }
-.cv-logo-ph{color:#aaa;font-size:18px;padding:20px;align-self:center;margin:auto}
+.cv-logo-ph{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#aaa;font-size:18px;
+}
 .cv-company{
   background:var(--accent);color:#fff;
   /* exact 2/3 of header */
@@ -592,7 +602,6 @@ input[type=range]{accent-color:var(--primary);flex:1}
     <button class="s-tab"        onclick="showSTab(1)">Lists</button>
     <button class="s-tab"        onclick="showSTab(2)">Design</button>
     <button class="s-tab"        onclick="showSTab(3)">Images</button>
-    <button class="s-tab"        onclick="showSTab(4)">👤 Users</button>
   </div>
   <!-- General -->
   <div class="s-panel active" id="sp0">
@@ -609,6 +618,12 @@ input[type=range]{accent-color:var(--primary);flex:1}
           <div class="s-row">
             <img class="logo-prev" id="s-logo-prev">
             <button class="sbtn red" id="s-logo-del" style="display:none" onclick="deleteLogo()">Remove</button>
+          </div>
+          <div class="s-row">
+            <span class="s-lbl">Logo Height</span>
+            <input type="range" min="60" max="300" value="160" id="s-logo-h"
+              oninput="applyLogoHeight(this.value);document.getElementById('rv-logo-h').textContent=this.value+'px'">
+            <span id="rv-logo-h" style="font-size:12px;min-width:40px">160px</span>
           </div>
           <button class="sbtn grn" onclick="saveGeneral()">💾 Save</button>
         </div>
@@ -900,7 +915,7 @@ const DEF={
   hazard:['Housekeeping','Electrical Hazard','Fire Hazard','Chemical Hazard','Mechanical Hazard',
     'Working at Height','Manual Handling','Slips & Trips','PPE Violation','Environmental Hazard'],
   risk:['Low','Medium','High'],
-  pages:[],imgW:1080,imgH:720,imgFit:'contain',imgQuality:0.85,design:{},
+  pages:[],imgW:1080,imgH:720,imgFit:'contain',imgQuality:0.85,design:{},logoH:160,
   users:[],adminPin:''
 };
 let S=JSON.parse(JSON.stringify(DEF));
@@ -1005,6 +1020,7 @@ window.addEventListener('load',()=>{
   renderRtypeBtns();
   renderPagesDOM();
   applyDesign();
+  applyLogoHeight(S.logoH||160);
   updateNavCount();
   initPWA();
   setTimeout(applyMobileScale, 400);
@@ -1030,7 +1046,7 @@ function showSTab(i){
   const panel=document.getElementById('sp'+i);
   if(panel) panel.classList.add('active');
   const tabs=document.querySelectorAll('.s-tab');
-  if(tabs[i]) tabs[i].classList.add('active');
+  if(i < tabs.length && tabs[i]) tabs[i].classList.add('active');
   if(i===4) refreshSP4();
 }
 
@@ -1759,12 +1775,23 @@ async function toggleMic(pid){
 /* ================================================================
    SETTINGS SAVE/SYNC
 ================================================================ */
+function applyLogoHeight(h){
+  const px=(parseInt(h)||160)+'px';
+  document.documentElement.style.setProperty('--logo-h',px);
+  S.logoH=parseInt(h)||160;
+}
+
 function saveGeneral(){
-  S.company=document.getElementById('s-company').value;S.site=document.getElementById('s-site').value;
-  S.mgr=document.getElementById('s-mgr').value;S.eng=document.getElementById('s-eng').value;
+  S.company=document.getElementById('s-company').value;
+  S.site=document.getElementById('s-site').value;
+  S.mgr=document.getElementById('s-mgr').value;
+  S.eng=document.getElementById('s-eng').value;
+  S.logoH=parseInt(document.getElementById('s-logo-h')?.value||160);
   document.getElementById('cv-company-name').textContent=S.company||'Company Name';
+  applyLogoHeight(S.logoH);
   updateLogoDisplay();saveAll();toast('Saved ✓');
 }
+
 function bootSettingsUI(){syncSettingsUI();}
 function syncSettingsUI(){
   document.getElementById('s-company').value=S.company||'';
@@ -1773,13 +1800,17 @@ function syncSettingsUI(){
   document.getElementById('s-eng').value=S.eng||'';
   document.getElementById('s-imgw').value=S.imgW||1080;
   document.getElementById('s-imgh').value=S.imgH||720;
-  document.getElementById('s-imgfit').value=S.imgFit||'cover';
+  document.getElementById('s-imgfit').value=S.imgFit||'contain';
   const q=S.imgQuality||0.85;
   document.getElementById('s-quality').value=q;
   document.getElementById('rv-q').textContent=Math.round(q*100)+'%';
+  // Logo height
+  const lh=S.logoH||160;
+  const logoEl=document.getElementById('s-logo-h');
+  if(logoEl){ logoEl.value=lh; document.getElementById('rv-logo-h').textContent=lh+'px'; }
+  applyLogoHeight(lh);
   updateLogoDisplay();renderRtypesList();
   renderLI('responsible','resp-list');renderLI('hazard','haz-list');renderLI('risk','risk-list');
-  // Users
   renderUsersList();
   const ap=document.getElementById('s-admin-pin');
   if(ap) ap.value=S.adminPin||'';
@@ -1899,35 +1930,39 @@ function applyMobileScale(){
   const DESIGN_W = 1346;
   const DESIGN_H = 748;
 
-  if(vw >= 900){
-    // Desktop — reset any transforms
+  if(vw >= DESIGN_W + 20){
+    // Full desktop — no scaling needed
     document.querySelectorAll('.cover-page,.rp').forEach(el=>{
-      el.style.transform=''; el.style.width=''; el.style.marginBottom='';
+      el.style.transform=''; el.style.width=''; el.style.height=''; el.style.marginBottom='';
     });
     const cvv=document.getElementById('cover-view');
     if(cvv) cvv.style.height='';
     return;
   }
 
-  const scale = vw / DESIGN_W;
+  // Scale to fit viewport width
+  const scale = Math.min(1, vw / DESIGN_W);
+  const scaledH = Math.round(DESIGN_H * scale);
 
   document.querySelectorAll('.cover-page').forEach(el=>{
-    el.style.width=DESIGN_W+'px';
-    el.style.height=DESIGN_H+'px';
-    el.style.transform='scale('+scale+')';
-    el.style.marginBottom=Math.round((DESIGN_H*scale)-DESIGN_H)+'px';
-  });
-  document.querySelectorAll('.rp').forEach(el=>{
-    el.style.width=DESIGN_W+'px';
-    el.style.height=DESIGN_H+'px';
-    el.style.transform='scale('+scale+')';
-    el.style.marginBottom=Math.round((DESIGN_H*scale)-DESIGN_H+20)+'px';
-    el.style.marginLeft='0';
+    el.style.width  = DESIGN_W+'px';
+    el.style.height = DESIGN_H+'px';
+    el.style.minHeight = DESIGN_H+'px';
+    el.style.transform = 'scale('+scale+')';
+    el.style.marginBottom = (scaledH - DESIGN_H)+'px';
   });
 
-  // Set cover-view height to match scaled result
-  const cvv=document.getElementById('cover-view');
-  if(cvv) cvv.style.height=Math.round(DESIGN_H*scale+20)+'px';
+  document.querySelectorAll('.rp').forEach(el=>{
+    el.style.width  = DESIGN_W+'px';
+    el.style.height = DESIGN_H+'px';
+    el.style.minHeight = DESIGN_H+'px';
+    el.style.transform = 'scale('+scale+')';
+    el.style.marginLeft = '0';
+    el.style.marginBottom = (scaledH - DESIGN_H + 20)+'px';
+  });
+
+  const cvv = document.getElementById('cover-view');
+  if(cvv) cvv.style.height = (scaledH + 20)+'px';
 }
 
 window.addEventListener('resize', applyMobileScale);
