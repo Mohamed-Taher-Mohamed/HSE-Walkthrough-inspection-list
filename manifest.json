@@ -8,7 +8,7 @@
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
   "description": "نظام تسجيل ملاحظات السلامة بمواقع العمل يعمل بدون إنترنت لتسجيل الملاحظات وإدارتها بسهولة.",
-  "orientation": "Landscape",
+  "orientation": "landscape",
   "icons": [
     {
       "src": "./icon-192.png",
