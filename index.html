@@ -1098,7 +1098,7 @@ JSON.stringify(S)
 await queueSyncToRemote(key,S);
 
 if(navigator.onLine){
-await syncToFirebase("main",S);
+await window.syncToFirebase("main",S);
 }
 
 console.log("✅ Saved + Synced");
@@ -1237,7 +1237,7 @@ JSON.stringify(q)
 
 if(navigator.onLine){
 
-await syncToFirebase("main",data);
+await window.syncToFirebase("main",data);
 
 }
 
@@ -1252,7 +1252,7 @@ const q=JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||'[]');
 for(const item of q){
 const data=JSON.parse(localStorage.getItem(item.k)||'{}');
 if(data){
-await syncToFirebase(item.k,data);
+await window.syncToFirebase(item.k,data);
 }
 }
 localStorage.removeItem(SYNC_QUEUE_KEY);
