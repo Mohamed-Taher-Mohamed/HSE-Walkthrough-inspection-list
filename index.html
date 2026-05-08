@@ -589,67 +589,81 @@ function initPWA() {
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs
-}
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyAbEtoWyt-z5bf9IQ_047oibNMtQ7WHAlI",
-  authDomain: "hse-walkthrough-inspection.firebaseapp.com",
-  projectId: "hse-walkthrough-inspection",
-  storageBucket: "hse-walkthrough-inspection.firebasestorage.app",
-  messagingSenderId: "939658557302",
-  appId: "1:939658557302:web:fbdcde07f005a9671dac57",
-  measurementId: "G-PZWWGTQ5B4"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-window.db = db;
-window.collection = collection;
-window.addDoc = addDoc;
-window.getDocs = getDocs;
-console.log("🔥 Firebase Ready");
-</script>
-<script type="module">
 
 import {
+getFirestore,
+collection,
+addDoc,
+getDocs,
 doc,
 setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const firebaseConfig={
+apiKey:"AIzaSyAbEtoWyt-z5bf9IQ_047oibNMtQ7WHAlI",
+authDomain:"hse-walkthrough-inspection.firebaseapp.com",
+projectId:"hse-walkthrough-inspection",
+storageBucket:"hse-walkthrough-inspection.firebasestorage.app",
+messagingSenderId:"939658557302",
+appId:"1:939658557302:web:fbdcde07f005a9671dac57",
+measurementId:"G-PZWWGTQ5B4"
+};
+
+const app=initializeApp(firebaseConfig);
+
+const db=getFirestore(app);
+
+window.db=db;
+window.collection=collection;
+window.addDoc=addDoc;
+window.getDocs=getDocs;
 window.doc=doc;
 window.setDoc=setDoc;
 
 window.uploadReportToFirebase=async function(report){
+
 try{
+
 await window.setDoc(
 window.doc(window.db,"reports","main"),
 report
 );
+
 console.log("✅ Report Synced");
+
 }catch(e){
+
 console.error("❌ Firebase Upload Error",e);
+
 }
+
 }
 
 window.syncToFirebase=async function(key,data){
+
 try{
+
 await window.setDoc(
-window.doc(window.db,"reports",key),
+window.doc(window.db,"reports","main"),
 {
-storageKey:key,
+storageKey:"main",
 payload:data,
 updatedAt:new Date().toISOString()
 }
 );
+
 console.log("✅ Synced:",key);
+
 }catch(e){
+
 console.error("❌ Sync Error",e);
+
 }
+
 }
+
+console.log("🔥 Firebase Ready");
 
 </script>
 <body>
