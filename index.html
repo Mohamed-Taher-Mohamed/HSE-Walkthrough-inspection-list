@@ -534,28 +534,47 @@ input[type=range]{accent-color:var(--primary);flex:1}
 </style>
 </head>
 <script>
+
 /* =========================
    PWA + SERVICE WORKER
 ========================= */
-function initPWA(){
+
+function initPWA() {
+
   // Register Service Worker
+
   if ('serviceWorker' in navigator) {
+
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
+
         console.log('✅ Service Worker Registered', reg);
+
       })
       .catch(err => {
+
         console.error('❌ SW Error:', err);
+
       });
+
   }
+
   // Install prompt
+
   let deferredPrompt = null;
+
   window.addEventListener('beforeinstallprompt', (e) => {
+
     e.preventDefault();
+
     deferredPrompt = e;
+
     const btn = document.createElement('button');
+
     btn.id = 'install-pwa-btn';
+
     btn.innerHTML = '📲 Install App';
+
     btn.style.cssText = `
       position:fixed;
       bottom:20px;
@@ -571,18 +590,31 @@ function initPWA(){
       cursor:pointer;
       box-shadow:0 4px 12px rgba(0,0,0,.25);
     `;
+
     btn.onclick = async () => {
+
       btn.remove();
+
       deferredPrompt.prompt();
+
       const choice = await deferredPrompt.userChoice;
+
       console.log(choice.outcome);
+
       deferredPrompt = null;
+
     };
-    if(!document.getElementById('install-pwa-btn')){
+
+    if (!document.getElementById('install-pwa-btn')) {
+
       document.body.appendChild(btn);
+
     }
+
   });
+
 }
+
 </script>
 <body>
 <div id="app">
