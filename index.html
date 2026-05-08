@@ -663,6 +663,32 @@ async function uploadReportToFirebase(report){
   }
 
 }
+
+  async function syncToFirebase(key, data){
+
+  try{
+
+    await window.addDoc(
+
+      window.collection(window.db, "reports"),
+
+      {
+        storageKey: key,
+        payload: data,
+        updatedAt: new Date().toISOString()
+      }
+
+    );
+
+    console.log("✅ Synced:", key);
+
+  }catch(e){
+
+    console.error("❌ Sync Error", e);
+
+  }
+
+}
 </script>
 <body>
 <div id="app">
@@ -1114,24 +1140,94 @@ function loadUserData(){
 ================================================================ */
 const SYNC_QUEUE_KEY='hse_sync_queue';
 
-function queueSyncToRemote(key, data){
-  // Store pending sync in a queue
-  try{
-    let q=JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||'[]');
-    // Replace existing entry for same key
-    q=q.filter(e=>e.k!==key);
-    q.push({k:key, ts:Date.now()});
-    // Keep queue lean — just keys, data is already in localStorage
-    if(q.length>20) q=q.slice(-20);
-    localStorage.setItem(SYNC_QUEUE_KEY, JSON.stringify(q));
-  }catch(e){}
-}
+async function queueSyncToRemote(key, data){
 
+  // Save queue locally
+
+  try{
+
+    let q = JSON.parse(
+
+      localStorage.getItem(SYNC_QUEUE_KEY) || '[]'
+
+    );
+
+    q = q.filter(e => e.k !== key);
+
+    q.push({
+
+      k:key,
+
+      ts:Date.now()
+
+    });
+
+    if(q.length > 20){
+
+      q = q.slice(-20);
+
+    }
+
+    localStorage.setItem(
+
+      SYNC_QUEUE_KEY,
+
+      JSON.stringify(q)
+
+    );
+
+  }catch(e){}
+
+  // If online → sync immediately
+
+  if(navigator.onLine){
+
+    await syncToFirebase(key, data);
+
+  }
+
+}
 // When browser comes back online — note: GitHub Pages is static,
 // so we use localStorage as the persistent store (already done).
 // For a real backend you'd POST here. We notify the user instead.
-window.addEventListener('online', ()=>{
-  toast('🌐 Back online — data is saved locally and ready to use');
+window.addEventListener('online', async ()=>{
+
+  toast('🌐 Back online — syncing data');
+
+  try{
+
+    const q = JSON.parse(
+
+      localStorage.getItem(SYNC_QUEUE_KEY) || '[]'
+
+    );
+
+    for(const item of q){
+
+      const data = JSON.parse(
+
+        localStorage.getItem(item.k)
+
+      );
+
+      if(data){
+
+        await syncToFirebase(item.k, data);
+
+      }
+
+    }
+
+    localStorage.removeItem(SYNC_QUEUE_KEY);
+
+    toast('✅ Sync completed');
+
+  }catch(e){
+
+    console.error(e);
+
+  }
+
 });
 window.addEventListener('offline', ()=>{
   toast('📴 Offline — changes saved locally, will sync when online');
