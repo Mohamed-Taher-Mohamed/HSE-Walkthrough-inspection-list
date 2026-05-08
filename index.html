@@ -1084,7 +1084,7 @@ JSON.stringify(S)
 await queueSyncToRemote(key,S);
 
 if(navigator.onLine){
-await syncToFirebase(key,S);
+await syncToFirebase("main",S);
 }
 
 console.log("✅ Saved + Synced");
@@ -1130,7 +1130,7 @@ q.forEach(docu=>{
 
 const d=docu.data();
 
-if(d.storageKey===key&&d.payload){
+if(d.storageKey==="main"&&d.payload){
 
 S=Object.assign(
 JSON.parse(JSON.stringify(DEF)),
@@ -1223,7 +1223,7 @@ JSON.stringify(q)
 
 if(navigator.onLine){
 
-await syncToFirebase(key,data);
+await syncToFirebase("main",data);
 
 }
 
