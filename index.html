@@ -540,14 +540,13 @@ input[type=range]{accent-color:var(--primary);flex:1}
 function initPWA(){
   // Register Service Worker
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const reg = await navigator.serviceWorker.register('./sw.js');
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
         console.log('✅ Service Worker Registered', reg);
-      } catch(err){
+      })
+      .catch(err => {
         console.error('❌ SW Error:', err);
-      }
-    });
+      });
   }
   // Install prompt
   let deferredPrompt = null;
