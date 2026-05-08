@@ -1208,8 +1208,8 @@ return S.pages.find(p=>p.id===pid);
 /* ================================================================
    BOOT
 ================================================================ */
-window.addEventListener('load',()=>{
-loadAll();
+window.addEventListener('load',async()=>{
+await loadAll();
 if(!S.cover.date)S.cover.date=new Date().toISOString().slice(0,10);
 bootCover();
 bootSettingsUI();
