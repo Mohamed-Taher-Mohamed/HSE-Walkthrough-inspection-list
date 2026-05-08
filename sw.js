@@ -1,5 +1,4 @@
-const CACHE="hse-cache-v60";
-
+const CACHE = 'hse-v5';
 const STATIC_FILES=[
 "./",
 "./index.html",
@@ -10,61 +9,45 @@ const STATIC_FILES=[
 "./favicon.png"
 ];
 
-self.addEventListener("install",event=>{
-self.skipWaiting();
-event.waitUntil(
-caches.open(CACHE).then(cache=>{
-return cache.addAll(STATIC_FILES);
-})
-);
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
+  );
+  self.skipWaiting();
 });
 
-self.addEventListener("activate",event=>{
-event.waitUntil(
-caches.keys().then(keys=>{
-return Promise.all(
-keys.map(key=>{
-if(key!==CACHE){
-return caches.delete(key);
-}
-})
-);
-}).then(()=>self.clients.claim())
-);
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      )
+    )
+  );
+  self.clients.claim();
 });
 
-self.addEventListener("fetch",event=>{
+self.addEventListener('fetch', e => {
+  // Firebase + Google APIs — always network
+  if (
+    e.request.url.includes('firebase') ||
+    e.request.url.includes('googleapis') ||
+    e.request.url.includes('gstatic') ||
+    e.request.url.includes('firebaseio')
+  ) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
 
-if(event.request.method!=="GET"){
-return;
-}
-
-event.respondWith(
-caches.match(event.request).then(cached=>{
-
-if(cached){
-return cached;
-}
-
-return fetch(event.request).then(response=>{
-
-if(!response||response.status!==200){
-return response;
-}
-
-const clone=response.clone();
-
-caches.open(CACHE).then(cache=>{
-cache.put(event.request,clone);
-});
-
-return response;
-
-}).catch(()=>{
-return caches.match("./index.html");
-});
-
-})
-);
-
+  // App shell — cache first, fallback to network
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      return cached || fetch(e.request).then(res => {
+        return caches.open(CACHE).then(c => {
+          c.put(e.request, res.clone());
+          return res;
+        });
+      });
+    }).catch(() => caches.match('./index.html'))
+  );
 });
