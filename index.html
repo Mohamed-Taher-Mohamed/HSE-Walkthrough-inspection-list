@@ -534,47 +534,28 @@ input[type=range]{accent-color:var(--primary);flex:1}
 </style>
 </head>
 <script>
-
 /* =========================
    PWA + SERVICE WORKER
 ========================= */
-
 function initPWA() {
-
   // Register Service Worker
-
   if ('serviceWorker' in navigator) {
-
     navigator.serviceWorker.register('./sw.js')
       .then(reg => {
-
         console.log('✅ Service Worker Registered', reg);
-
       })
       .catch(err => {
-
         console.error('❌ SW Error:', err);
-
       });
-
   }
-
   // Install prompt
-
   let deferredPrompt = null;
-
   window.addEventListener('beforeinstallprompt', (e) => {
-
     e.preventDefault();
-
     deferredPrompt = e;
-
     const btn = document.createElement('button');
-
     btn.id = 'install-pwa-btn';
-
     btn.innerHTML = '📲 Install App';
-
     btn.style.cssText = `
       position:fixed;
       bottom:20px;
@@ -590,31 +571,46 @@ function initPWA() {
       cursor:pointer;
       box-shadow:0 4px 12px rgba(0,0,0,.25);
     `;
-
     btn.onclick = async () => {
-
       btn.remove();
-
       deferredPrompt.prompt();
-
       const choice = await deferredPrompt.userChoice;
-
       console.log(choice.outcome);
-
       deferredPrompt = null;
-
     };
-
     if (!document.getElementById('install-pwa-btn')) {
-
       document.body.appendChild(btn);
-
     }
-
   });
-
 }
+</script>
+<script type="module">
 
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyAbEtoWyt-z5bf9IQ_047oibNMtQ7WHAlI",
+  authDomain: "hse-walkthrough-inspection.firebaseapp.com",
+  projectId: "hse-walkthrough-inspection",
+  storageBucket: "hse-walkthrough-inspection.firebasestorage.app",
+  messagingSenderId: "939658557302",
+  appId: "1:939658557302:web:fbdcde07f005a9671dac57",
+  measurementId: "G-PZWWGTQ5B4"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window.db = db;
+window.collection = collection;
+window.addDoc = addDoc;
+window.getDocs = getDocs;
+console.log("🔥 Firebase Ready");
 </script>
 <body>
 <div id="app">
