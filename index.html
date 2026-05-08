@@ -641,6 +641,28 @@ async function testFirebase(){
 
 testFirebase();
 
+
+async function uploadReportToFirebase(report){
+
+  try{
+
+    await window.addDoc(
+
+      window.collection(window.db, "reports"),
+
+      report
+
+    );
+
+    console.log("✅ Report Synced");
+
+  }catch(e){
+
+    console.error("❌ Firebase Upload Error", e);
+
+  }
+
+}
 </script>
 <body>
 <div id="app">
