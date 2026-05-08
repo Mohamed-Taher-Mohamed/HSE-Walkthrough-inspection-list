@@ -623,7 +623,7 @@ setDoc
 window.doc=doc;
 window.setDoc=setDoc;
 
-async function uploadReportToFirebase(report){
+window.uploadReportToFirebase=async function(report){
 try{
 await window.setDoc(
 window.doc(window.db,"reports","main"),
@@ -635,7 +635,7 @@ console.error("❌ Firebase Upload Error",e);
 }
 }
 
-async function syncToFirebase(key,data){
+window.syncToFirebase=async function(key,data){
 try{
 await window.setDoc(
 window.doc(window.db,"reports",key),
