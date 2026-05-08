@@ -612,6 +612,36 @@ window.addDoc = addDoc;
 window.getDocs = getDocs;
 console.log("🔥 Firebase Ready");
 </script>
+<script type="module">
+
+async function testFirebase(){
+
+  try{
+
+    await window.addDoc(
+
+      window.collection(window.db,"reports"),
+
+      {
+        title:"Test Report",
+        created:new Date().toISOString()
+      }
+
+    );
+
+    console.log("✅ Data Uploaded");
+
+  }catch(e){
+
+    console.error(e);
+
+  }
+
+}
+
+testFirebase();
+
+</script>
 <body>
 <div id="app">
 
