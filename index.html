@@ -1055,126 +1055,177 @@ function getStorageKey(){
   return 'hse4';
 }
 
-function saveAll(){
-  flushNotes();
-  // Save SHAPES (vector data) into each page object
-  S.pages.forEach(p=>{
-    if(SHAPES[p.id]) p.shapes=SHAPES[p.id];
-    // Also save canvas bitmap for print/PDF
-    const c=document.getElementById('dc-'+p.id);
-    if(c && (SHAPES[p.id]||[]).length>0) p.drawing=c.toDataURL();
-  });
-  const key=getStorageKey();
-  try{
-    localStorage.setItem(key, JSON.stringify(S));
-    // Queue for offline sync when online
-    queueSyncToRemote(key, S);
-  }catch(e){
-    toast('⚠ Storage full — reduce image quality in Settings');
-  }
+async function saveAll(){
+flushNotes();
+
+S.pages.forEach(p=>{
+
+if(SHAPES[p.id]){
+p.shapes=SHAPES[p.id];
 }
-  
-async function loadAll(){
+
+const c=document.getElementById('dc-'+p.id);
+
+if(c&&(SHAPES[p.id]||[]).length>0){
+p.drawing=c.toDataURL();
+}
+
+});
+
 const key=getStorageKey();
+
 try{
-const local=localStorage.getItem(key)
-||localStorage.getItem('hse4')
-||localStorage.getItem('hse5');
-if(local){
-const p=JSON.parse(local);
-S=Object.assign(JSON.parse(JSON.stringify(DEF)),p);
-}
-if(navigator.onLine){
-const q=await window.getDocs(
-window.collection(window.db,"reports")
-);
-q.forEach(docu=>{
-const d=docu.data();
-if(d.storageKey===key && d.payload){
-S=Object.assign(
-JSON.parse(JSON.stringify(DEF)),
-d.payload
-);
+
 localStorage.setItem(
 key,
 JSON.stringify(S)
 );
+
+await queueSyncToRemote(key,S);
+
+if(navigator.onLine){
+await syncToFirebase(key,S);
 }
-});
-}
+
+console.log("✅ Saved + Synced");
+
 }catch(e){
-console.warn('loadAll error',e);
+
+console.error(e);
+
+toast('⚠ Storage full — reduce image quality in Settings');
+
 }
+
 }
-/* Load the correct user's data after login */
-async function loadUserData(){
+
+async function loadAll(){
+
 const key=getStorageKey();
+
 try{
-const r=localStorage.getItem(key);
-if(r){
-const p=JSON.parse(r);
+
+const local=localStorage.getItem(key)
+||localStorage.getItem('hse4')
+||localStorage.getItem('hse5');
+
+if(local){
+
+const p=JSON.parse(local);
+
 S=Object.assign(
 JSON.parse(JSON.stringify(DEF)),
 p
 );
-}else{
-S=JSON.parse(JSON.stringify(DEF));
+
 }
+
+if(navigator.onLine){
+
+const q=await window.getDocs(
+window.collection(window.db,"reports")
+);
+
+q.forEach(docu=>{
+
+const d=docu.data();
+
+if(d.storageKey===key&&d.payload){
+
+S=Object.assign(
+JSON.parse(JSON.stringify(DEF)),
+d.payload
+);
+
+localStorage.setItem(
+key,
+JSON.stringify(S)
+);
+
+}
+
+});
+
+}
+
 }catch(e){
+
+console.warn('loadAll error',e);
+
+}
+
+}
+
+/* Load the correct user's data after login */
+
+async function loadUserData(){
+
+const key=getStorageKey();
+
+try{
+
+const r=localStorage.getItem(key);
+
+if(r){
+
+const p=JSON.parse(r);
+
+S=Object.assign(
+JSON.parse(JSON.stringify(DEF)),
+p
+);
+
+}else{
+
 S=JSON.parse(JSON.stringify(DEF));
+
 }
+
+}catch(e){
+
+S=JSON.parse(JSON.stringify(DEF));
+
 }
+
+}
+
 /* ================================================================
-   OFFLINE SYNC — queue saves, push to GitHub Pages storage
-   Uses localStorage as offline queue; syncs via fetch on online
+   OFFLINE SYNC
 ================================================================ */
+
 const SYNC_QUEUE_KEY='hse_sync_queue';
 
-async function queueSyncToRemote(key, data){
+async function queueSyncToRemote(key,data){
 
-  // Save queue locally
+try{
 
-  try{
+let q=JSON.parse(
+localStorage.getItem(SYNC_QUEUE_KEY)||'[]'
+);
 
-    let q = JSON.parse(
+q=q.filter(e=>e.k!==key);
 
-      localStorage.getItem(SYNC_QUEUE_KEY) || '[]'
+q.push({
+k:key,
+ts:Date.now()
+});
 
-    );
+if(q.length>20){
+q=q.slice(-20);
+}
 
-    q = q.filter(e => e.k !== key);
+localStorage.setItem(
+SYNC_QUEUE_KEY,
+JSON.stringify(q)
+);
 
-    q.push({
+}catch(e){}
 
-      k:key,
+if(navigator.onLine){
 
-      ts:Date.now()
+await syncToFirebase(key,data);
 
-    });
-
-    if(q.length > 20){
-
-      q = q.slice(-20);
-
-    }
-
-    localStorage.setItem(
-
-      SYNC_QUEUE_KEY,
-
-      JSON.stringify(q)
-
-    );
-
-  }catch(e){}
-
-  // If online → sync immediately
-
-  if(navigator.onLine){
-
-    await syncToFirebase(key, data);
-
-  }
+}
 
 }
 // When browser comes back online — note: GitHub Pages is static,
