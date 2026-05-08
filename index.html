@@ -1065,30 +1065,57 @@ function saveAll(){
     toast('⚠ Storage full — reduce image quality in Settings');
   }
 }
-
-function loadAll(){
-  const key=getStorageKey();
-  try{
-    const r=localStorage.getItem(key)
-      || localStorage.getItem('hse4')
-      || localStorage.getItem('hse5');
-    if(r){ const p=JSON.parse(r); S=Object.assign(JSON.parse(JSON.stringify(DEF)),p); }
-  }catch(e){ console.warn('loadAll error',e); }
+  
+async function loadAll(){
+const key=getStorageKey();
+try{
+const local=localStorage.getItem(key)
+||localStorage.getItem('hse4')
+||localStorage.getItem('hse5');
+if(local){
+const p=JSON.parse(local);
+S=Object.assign(JSON.parse(JSON.stringify(DEF)),p);
 }
-
+if(navigator.onLine){
+const q=await window.getDocs(
+window.collection(window.db,"reports")
+);
+q.forEach(docu=>{
+const d=docu.data();
+if(d.storageKey===key && d.payload){
+S=Object.assign(
+JSON.parse(JSON.stringify(DEF)),
+d.payload
+);
+localStorage.setItem(
+key,
+JSON.stringify(S)
+);
+}
+});
+}
+}catch(e){
+console.warn('loadAll error',e);
+}
+}
 /* Load the correct user's data after login */
-function loadUserData(){
-  const key=getStorageKey();
-  try{
-    const r=localStorage.getItem(key);
-    if(r){ const p=JSON.parse(r); S=Object.assign(JSON.parse(JSON.stringify(DEF)),p); }
-    else{
-      // New user — start fresh but keep global settings
-      S=JSON.parse(JSON.stringify(DEF));
-    }
-  }catch(e){ S=JSON.parse(JSON.stringify(DEF)); }
+async function loadUserData(){
+const key=getStorageKey();
+try{
+const r=localStorage.getItem(key);
+if(r){
+const p=JSON.parse(r);
+S=Object.assign(
+JSON.parse(JSON.stringify(DEF)),
+p
+);
+}else{
+S=JSON.parse(JSON.stringify(DEF));
 }
-
+}catch(e){
+S=JSON.parse(JSON.stringify(DEF));
+}
+}
 /* ================================================================
    OFFLINE SYNC — queue saves, push to GitHub Pages storage
    Uses localStorage as offline queue; syncs via fetch on online
