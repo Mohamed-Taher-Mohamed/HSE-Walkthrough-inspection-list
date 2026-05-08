@@ -1145,73 +1145,57 @@ async function queueSyncToRemote(key, data){
 // When browser comes back online — note: GitHub Pages is static,
 // so we use localStorage as the persistent store (already done).
 // For a real backend you'd POST here. We notify the user instead.
-window.addEventListener('online', async ()=>{
-
-  toast('🌐 Back online — syncing data');
-
-  try{
-
-    const q = JSON.parse(
-
-      localStorage.getItem(SYNC_QUEUE_KEY) || '[]'
-
-    );
-
-    for(const item of q){
-
-      const data = JSON.parse(
-
-        localStorage.getItem(item.k)
-
-      );
-
-      if(data){
-
-        await syncToFirebase(item.k, data);
-
-      }
-
-    }
-
-    localStorage.removeItem(SYNC_QUEUE_KEY);
-
-    toast('✅ Sync completed');
-
-  }catch(e){
-
-    console.error(e);
-
-  }
-
-});
-window.addEventListener('offline', ()=>{
-  toast('📴 Offline — changes saved locally, will sync when online');
-});
-function flushNotes(){
-  document.querySelectorAll('.note-ta').forEach(ta=>{
-    const p=GP(ta.dataset.pid);if(p)p.note=ta.value;
-  });
+window.addEventListener('online',async()=>{
+toast('🌐 Back online — syncing data');
+try{
+const q=JSON.parse(localStorage.getItem(SYNC_QUEUE_KEY)||'[]');
+for(const item of q){
+const data=JSON.parse(localStorage.getItem(item.k)||'{}');
+if(data){
+await syncToFirebase(item.k,data);
 }
-function GP(pid){return S.pages.find(p=>p.id===pid);}
+}
+localStorage.removeItem(SYNC_QUEUE_KEY);
+toast('✅ Sync completed');
+}catch(e){
+console.error(e);
+toast('❌ Sync failed');
+}
+});
+
+window.addEventListener('offline',()=>{
+toast('📴 Offline — changes saved locally');
+});
+
+function flushNotes(){
+document.querySelectorAll('.note-ta').forEach(ta=>{
+const p=GP(ta.dataset.pid);
+if(p)p.note=ta.value;
+});
+}
+
+function GP(pid){
+return S.pages.find(p=>p.id===pid);
+}
 
 /* ================================================================
    BOOT
 ================================================================ */
 window.addEventListener('load',()=>{
-  loadAll();
-  if(!S.cover.date)S.cover.date=new Date().toISOString().slice(0,10);
-  bootCover();
-  bootSettingsUI();
-  renderRtypeBtns();
-  renderPagesDOM();
-  applyDesign();
-  applyLogoHeight(S.logoH||160);
-  updateNavCount();
-  setTimeout(applyMobileScale, 400);
-  // Show login if users configured
-  if((S.users||[]).length>0 || S.adminPin){
-    showLogin();
-  }
+loadAll();
+if(!S.cover.date)S.cover.date=new Date().toISOString().slice(0,10);
+bootCover();
+bootSettingsUI();
+renderRtypeBtns();
+renderPagesDOM();
+applyDesign();
+applyLogoHeight(S.logoH||160);
+updateNavCount();
+setTimeout(applyMobileScale,400);
+
+if((S.users||[]).length>0 || S.adminPin){
+showLogin();
+}
 });
 
 /* ================================================================
