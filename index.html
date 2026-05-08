@@ -705,7 +705,7 @@ async function uploadReportToFirebase(report){
   <div class="nav-right">
     <button class="nbtn active" id="vbtn-cover"    onclick="showView('cover')">🏠 Cover</button>
     <button class="nbtn"        id="vbtn-pages"    onclick="showView('pages')">📋 Pages</button>
-    <button class="nbtn"        id="vbtn-settings" onclick="showView('settings')">⚙️ Settings</button>
+    <button class="nbtn"        id="vbtn-settings" onclick="showView('settings');showSTab(4)">⚙️ Settings</button>
     <button class="nbtn grn"                       onclick="exportPDF()">📤 Export PDF</button>
   </div>
 </nav>
@@ -758,10 +758,11 @@ async function uploadReportToFirebase(report){
 <!-- SETTINGS VIEW -->
 <div class="view" id="settings-view">
   <div class="s-tabs">
-    <button class="s-tab active" onclick="showSTab(0)">General</button>
-    <button class="s-tab"        onclick="showSTab(1)">Lists</button>
-    <button class="s-tab"        onclick="showSTab(2)">Design</button>
-    <button class="s-tab"        onclick="showSTab(3)">Images</button>
+    <button class="s-tab" id="stab-0" onclick="guardSTab(0)">General</button>
+    <button class="s-tab" id="stab-1" onclick="guardSTab(1)">Lists</button>
+    <button class="s-tab" id="stab-2" onclick="guardSTab(2)">Design</button>
+    <button class="s-tab" id="stab-3" onclick="guardSTab(3)">Images</button>
+    <button class="s-tab active" id="stab-4" onclick="showSTab(4)">👤 Account</button>
   </div>
   <!-- General -->
   <div class="s-panel active" id="sp0">
@@ -1274,9 +1275,16 @@ function showSTab(i){
   document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
   const panel=document.getElementById('sp'+i);
   if(panel) panel.classList.add('active');
-  const tabs=document.querySelectorAll('.s-tab');
-  if(i < tabs.length && tabs[i]) tabs[i].classList.add('active');
+  const tab=document.getElementById('stab-'+i);
+  if(tab) tab.classList.add('active');
   if(i===4) refreshSP4();
+}
+function guardSTab(i){
+  if(!isAdmin()){
+    toast('⛔ Admin only — contact your administrator');
+    return;
+  }
+  showSTab(i);
 }
 
 /* ================================================================
@@ -2969,8 +2977,12 @@ function doAuthRegister(){
 function authLogout(){
   clearSession();
   currentUser=null;
-  // Hide admin panel
-  document.getElementById('admin-panel').classList.remove('active');
+  const ap=document.getElementById('admin-panel');
+  if(ap) ap.classList.remove('active');
+  const aBtn=document.getElementById('account-nav-btn');
+  if(aBtn) aBtn.remove();
+  const lBtn=document.getElementById('logout-nav-btn');
+  if(lBtn) lBtn.remove();
   showAuthScreen();
   toast('Logged out successfully');
 }
@@ -3019,12 +3031,7 @@ function doChangePassword(){
    ADMIN PANEL — lives inside Settings → Users tab (sp4)
 ================================================================ */
 function showAdminNavBtn(){
-  // Update the merged account button to show admin style
-  const btn=document.getElementById('account-nav-btn');
-  if(btn){
-    btn.innerHTML='🔑 Admin / Account';
-    btn.style.background='#7d3c98';
-  }
+  // Admin indicator is now shown inside Settings > Account tab (sp4)
 }
 
 // openAdminPanel now just opens settings sp4
@@ -3082,21 +3089,12 @@ function deleteAuthUser(username){
   toast('User deleted');
 }
 
-// After app loads — inject nav buttons (merged Account/Admin)
+// After app loads — inject Logout button in nav, default settings to Account tab
 window.addEventListener('load',()=>{
   setTimeout(()=>{
     if(isLoggedIn()){
       const navRight=document.querySelector('.nav-right');
       if(navRight&&!document.getElementById('logout-nav-btn')){
-        // Single merged Account/Admin button
-        const ub=document.createElement('button');
-        ub.id='account-nav-btn';
-        ub.className='nbtn';
-        ub.innerHTML=isAdmin()?'🔑 Admin / Account':'👤 Account';
-        ub.style.background=isAdmin()?'#7d3c98':'rgba(255,255,255,.14)';
-        ub.onclick=()=>{showView('settings');showSTab(4);};
-        navRight.appendChild(ub);
-        // Logout button
         const lb=document.createElement('button');
         lb.id='logout-nav-btn';lb.className='nbtn';
         lb.innerHTML='🚪 Logout';
