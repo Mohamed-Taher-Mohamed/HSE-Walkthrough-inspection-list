@@ -615,10 +615,18 @@ console.log("🔥 Firebase Ready");
 </script>
 <script type="module">
 
+import {
+doc,
+setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+window.doc=doc;
+window.setDoc=setDoc;
+
 async function uploadReportToFirebase(report){
 try{
-await window.addDoc(
-window.collection(window.db,"reports"),
+await window.setDoc(
+window.doc(window.db,"reports","main"),
 report
 );
 console.log("✅ Report Synced");
@@ -629,8 +637,8 @@ console.error("❌ Firebase Upload Error",e);
 
 async function syncToFirebase(key,data){
 try{
-await window.addDoc(
-window.collection(window.db,"reports"),
+await window.setDoc(
+window.doc(window.db,"reports",key),
 {
 storageKey:key,
 payload:data,
