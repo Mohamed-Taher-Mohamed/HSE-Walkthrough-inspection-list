@@ -615,81 +615,34 @@ console.log("🔥 Firebase Ready");
 </script>
 <script type="module">
 
-async function testFirebase(){
-
-  try{
-
-    await window.addDoc(
-
-      window.collection(window.db,"reports"),
-
-      {
-        title:"Test Report",
-        created:new Date().toISOString()
-      }
-
-    );
-
-    console.log("✅ Data Uploaded");
-
-  }catch(e){
-
-    console.error(e);
-
-  }
-
-}
-
-testFirebase();
-
-
 async function uploadReportToFirebase(report){
-
-  try{
-
-    await window.addDoc(
-
-      window.collection(window.db, "reports"),
-
-      report
-
-    );
-
-    console.log("✅ Report Synced");
-
-  }catch(e){
-
-    console.error("❌ Firebase Upload Error", e);
-
-  }
-
+try{
+await window.addDoc(
+window.collection(window.db,"reports"),
+report
+);
+console.log("✅ Report Synced");
+}catch(e){
+console.error("❌ Firebase Upload Error",e);
+}
 }
 
-  async function syncToFirebase(key, data){
-
-  try{
-
-    await window.addDoc(
-
-      window.collection(window.db, "reports"),
-
-      {
-        storageKey: key,
-        payload: data,
-        updatedAt: new Date().toISOString()
-      }
-
-    );
-
-    console.log("✅ Synced:", key);
-
-  }catch(e){
-
-    console.error("❌ Sync Error", e);
-
-  }
-
+async function syncToFirebase(key,data){
+try{
+await window.addDoc(
+window.collection(window.db,"reports"),
+{
+storageKey:key,
+payload:data,
+updatedAt:new Date().toISOString()
 }
+);
+console.log("✅ Synced:",key);
+}catch(e){
+console.error("❌ Sync Error",e);
+}
+}
+
 </script>
 <body>
 <div id="app">
