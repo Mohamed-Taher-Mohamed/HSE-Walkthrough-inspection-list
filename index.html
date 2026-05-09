@@ -155,17 +155,17 @@ input[type=range]{accent-color:var(--primary);flex:1}
 .c2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.54);z-index:999;align-items:center;justify-content:center}
 .modal-ov.open{display:flex}
-.modal-box{background:#fff;border-radius:8px;padding:20px;max-width:360px;width:92%;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.modal-box{background:#fff;border-radius:8px;padding:20px;max-width:400px;width:92%;box-shadow:0 8px 28px rgba(0,0,0,.28)}
 .modal-title{font-size:15px;font-weight:800;color:var(--primary);margin-bottom:10px}
 .modal-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 #toast{position:fixed;bottom:16px;right:16px;background:var(--primary);color:#fff;padding:8px 16px;border-radius:5px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none}
 #toast.show{opacity:1}
-#auth-screen{display:none;position:fixed;inset:0;z-index:600;background:#0f1e30;flex-direction:column;align-items:center;justify-content:center;font-family:'Segoe UI',Tahoma,Arial,sans-serif;overflow-y:auto;padding:20px;}
+#auth-screen{display:none;position:fixed;inset:0;z-index:600;background:#0f1e30;flex-direction:column;align-items:center;justify-content:center;overflow-y:auto;padding:20px;}
 #auth-screen.active{display:flex}
 .auth-card{background:#fff;border-radius:12px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.45);overflow:hidden;}
 .auth-header{background:#1a3a5c;color:#fff;padding:24px 28px 18px;text-align:center;}
 .auth-header .logo-row{font-size:36px;margin-bottom:6px}
-.auth-header h1{font-size:22px;font-weight:800;margin:0;letter-spacing:.5px}
+.auth-header h1{font-size:22px;font-weight:800;margin:0}
 .auth-header p{font-size:13px;opacity:.75;margin:4px 0 0}
 .auth-body{padding:24px 28px}
 .auth-tabs{display:flex;margin-bottom:20px;border-radius:6px;overflow:hidden;border:1px solid #ddd}
@@ -174,7 +174,7 @@ input[type=range]{accent-color:var(--primary);flex:1}
 .auth-panel{display:none}.auth-panel.active{display:block}
 .auth-group{margin-bottom:14px}
 .auth-label{display:block;font-size:12px;font-weight:700;color:#444;margin-bottom:5px}
-.auth-input{width:100%;padding:10px 13px;font-size:14px;border:1.5px solid #ccc;border-radius:6px;outline:none;transition:border-color .15s;}
+.auth-input{width:100%;padding:10px 13px;font-size:14px;border:1.5px solid #ccc;border-radius:6px;outline:none;transition:border-color .15s;background:#fff;color:#111;}
 .auth-input:focus{border-color:#1a3a5c}
 .auth-btn{width:100%;padding:12px;font-size:15px;font-weight:700;border:none;border-radius:6px;cursor:pointer;transition:background .15s;margin-top:4px;}
 .auth-btn.primary{background:#1a3a5c;color:#fff}.auth-btn.primary:hover{background:#2d5a8e}
@@ -188,6 +188,8 @@ input[type=range]{accent-color:var(--primary);flex:1}
 .code-badge .code-meta{color:#888;font-size:10px}
 .code-badge.used{opacity:.5;text-decoration:line-through}
 .code-badge.expired{border-color:#c0392b;opacity:.6}
+/* Timestamp badge on images */
+.ts-overlay{position:absolute;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;pointer-events:none;z-index:10;border-radius:3px;padding:3px 7px;white-space:nowrap;}
 @media print{
   @page{size:1366px 768px;margin:0}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
@@ -265,7 +267,7 @@ input[type=range]{accent-color:var(--primary);flex:1}
 </style>
 </head>
 
-<!-- PWA SERVICE WORKER -->
+<!-- PWA -->
 <script>
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js')
@@ -290,6 +292,8 @@ window.addEventListener('beforeinstallprompt',e=>{
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getFirestore,doc,setDoc,getDoc,onSnapshot,enableIndexedDbPersistence}
   from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ══ استبدل هذه القيم ببيانات مشروعك من Firebase Console ══ */
 const FB_CFG={
   apiKey:"AIzaSyAbEtoWyt-z5bf9IQ_047oibNMtQ7WHAlI",
   authDomain:"hse-walkthrough-inspection.firebaseapp.com",
@@ -298,8 +302,10 @@ const FB_CFG={
   messagingSenderId:"939658557302",
   appId:"1:939658557302:web:fbdcde07f005a9671dac57"
 };
+
 const fbApp=initializeApp(FB_CFG);
 const db=getFirestore(fbApp);
+
 enableIndexedDbPersistence(db).catch(err=>{
   if(err.code==='failed-precondition')console.warn('Firestore: multi-tab offline limited');
   else if(err.code==='unimplemented')console.warn('Firestore: offline unavailable');
@@ -307,6 +313,25 @@ enableIndexedDbPersistence(db).catch(err=>{
 window._FB={db,doc,setDoc,getDoc,onSnapshot};
 window._FB_READY=true;
 console.log('🔥 Firebase + Offline Persistence Ready');
+
+/* ══ اختبار الاتصال بـ Firestore ══ */
+window._FB_READY_PROMISE = new Promise(resolve=>{
+  window._FB_RESOLVE = resolve;
+});
+window._FB_RESOLVE(true);
+
+/* ══ Debug: اختبار كتابة بسيطة ══ */
+setTimeout(async()=>{
+  try{
+    await setDoc(doc(db,'debug','connection_test'),{
+      ts: Date.now(),
+      msg: 'HSE App connected successfully'
+    });
+    console.log('✅ Firestore write test passed');
+  }catch(e){
+    console.error('❌ Firestore write test failed:',e);
+  }
+},2000);
 </script>
 
 <body>
@@ -379,6 +404,7 @@ console.log('🔥 Firebase + Offline Persistence Ready');
     <button class="s-tab"        onclick="showSTab(3)">Images</button>
     <button class="s-tab"        onclick="showSTab(4);refreshSP4()">Account</button>
   </div>
+  <!-- General -->
   <div class="s-panel active" id="sp0">
     <div class="sg">
       <div class="sc"><div class="sc-hdr">Company Info</div><div class="sc-body">
@@ -407,6 +433,7 @@ console.log('🔥 Firebase + Offline Persistence Ready');
       </div></div>
     </div>
   </div>
+  <!-- Lists -->
   <div class="s-panel" id="sp1">
     <div class="sg">
       <div class="sc"><div class="sc-hdr">In Charge (Responsible)</div><div class="sc-body">
@@ -426,6 +453,7 @@ console.log('🔥 Firebase + Offline Persistence Ready');
       </div></div>
     </div>
   </div>
+  <!-- Design -->
   <div class="s-panel" id="sp2">
     <div class="sg"><div class="sc full"><div class="sc-hdr">Colors &amp; Typography</div><div class="sc-body">
       <div class="c2">
@@ -459,8 +487,9 @@ console.log('🔥 Firebase + Offline Persistence Ready');
       <button class="sbtn grn" onclick="saveDesign();toast('Design saved ✓')">💾 Save Design</button>
     </div></div></div>
   </div>
+  <!-- Images + Timestamp -->
   <div class="s-panel" id="sp3">
-    <div class="sg w1"><div class="sc"><div class="sc-hdr">Image Settings</div><div class="sc-body">
+    <div class="sg w1"><div class="sc"><div class="sc-hdr">📷 Image Settings</div><div class="sc-body">
       <div class="s-row">
         <span class="s-lbl">Max Width (px)</span><input type="number" class="s-inp" id="s-imgw" value="1080" min="200" max="2000">
         <span class="s-lbl">Max Height (px)</span><input type="number" class="s-inp" id="s-imgh" value="720" min="100" max="1400">
@@ -472,9 +501,54 @@ console.log('🔥 Firebase + Offline Persistence Ready');
         <input type="range" min="0.3" max="1" step="0.05" value="0.85" id="s-quality" oninput="document.getElementById('rv-q').textContent=Math.round(this.value*100)+'%'">
         <span id="rv-q" style="font-size:12px;min-width:36px">85%</span>
       </div>
+      <hr style="border-color:#ddd;margin:4px 0">
+      <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin:4px 0">📅 Timestamp على الصور</div>
+      <div class="s-row">
+        <span class="s-lbl">تفعيل Timestamp</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" id="s-ts-enable" style="width:18px;height:18px;cursor:pointer" onchange="toggleTsOptions()">
+          <span>اعرض التاريخ والوقت على الصورة</span>
+        </label>
+      </div>
+      <div id="ts-options" style="display:none;flex-direction:column;gap:8px;padding:10px;background:#f0f4f8;border-radius:6px;border:1px solid #c0d0e0">
+        <div class="s-row">
+          <span class="s-lbl">الموضع</span>
+          <select class="s-inp" id="s-ts-pos">
+            <option value="BR">أسفل يمين</option>
+            <option value="BL">أسفل يسار</option>
+            <option value="TR">أعلى يمين</option>
+            <option value="TL">أعلى يسار</option>
+          </select>
+        </div>
+        <div class="s-row">
+          <span class="s-lbl">حجم الخط</span>
+          <input type="range" min="14" max="60" value="24" id="s-ts-size" oninput="document.getElementById('rv-ts').textContent=this.value+'px'">
+          <span id="rv-ts" style="font-size:12px;min-width:36px">24px</span>
+        </div>
+        <div class="s-row">
+          <span class="s-lbl">لون النص</span>
+          <input type="color" id="s-ts-color" value="#ffffff">
+          <span class="s-lbl" style="margin-left:6px">لون الخلفية</span>
+          <input type="color" id="s-ts-bg" value="#000000">
+          <span class="s-lbl" style="margin-left:6px">شفافية</span>
+          <input type="range" min="0" max="100" value="65" id="s-ts-alpha" oninput="document.getElementById('rv-alpha').textContent=this.value+'%'">
+          <span id="rv-alpha" style="font-size:12px;min-width:34px">65%</span>
+        </div>
+        <div class="s-row">
+          <span class="s-lbl">التنسيق</span>
+          <select class="s-inp" id="s-ts-fmt">
+            <option value="datetime">تاريخ + وقت  (2025-01-15  14:30:22)</option>
+            <option value="date">تاريخ فقط  (2025-01-15)</option>
+            <option value="time">وقت فقط  (14:30:22)</option>
+            <option value="arabic">عربي كامل</option>
+          </select>
+        </div>
+        <div style="font-size:11px;color:#888;padding:4px">* سيظهر الـ Timestamp مدمجاً في الصورة نفسها عند الحفظ</div>
+      </div>
       <button class="sbtn grn" onclick="saveImgSettings();toast('Saved ✓')">💾 Save</button>
     </div></div></div>
   </div>
+  <!-- Account -->
   <div class="s-panel" id="sp4">
     <div style="max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:14px">
       <div class="sc"><div class="sc-hdr">👤 My Account</div><div class="sc-body">
@@ -485,12 +559,16 @@ console.log('🔥 Firebase + Offline Persistence Ready');
         </div>
         <hr style="border-color:#eee;margin:4px 0">
         <div style="font-size:13px;font-weight:700;color:#444;margin-bottom:8px">🔒 Change Password</div>
-        <div class="s-row"><span class="s-lbl">Current Password</span><input class="s-inp" type="password" id="sp4-old-pw" placeholder="Current password"></div>
-        <div class="s-row"><span class="s-lbl">New Password</span><input class="s-inp" type="password" id="sp4-new-pw" placeholder="New password"></div>
-        <div class="s-row"><span class="s-lbl">Confirm</span><input class="s-inp" type="password" id="sp4-new-pw2" placeholder="Repeat new password"></div>
-        <div id="sp4-pw-msg" style="font-size:12px;display:none;margin-top:4px"></div>
-        <button class="sbtn grn" onclick="sp4ChangePassword()">💾 Save New Password</button>
+        <!-- ✅ كل الحقول داخل form واحد لمنع تحذير browser -->
+        <form onsubmit="sp4ChangePassword();return false;" autocomplete="off">
+          <div class="s-row" style="margin-bottom:8px"><span class="s-lbl">Current Password</span><input class="s-inp" type="password" id="sp4-old-pw" autocomplete="current-password" placeholder="Current password"></div>
+          <div class="s-row" style="margin-bottom:8px"><span class="s-lbl">New Password</span><input class="s-inp" type="password" id="sp4-new-pw" autocomplete="new-password" placeholder="New password"></div>
+          <div class="s-row" style="margin-bottom:8px"><span class="s-lbl">Confirm</span><input class="s-inp" type="password" id="sp4-new-pw2" autocomplete="new-password" placeholder="Repeat new password"></div>
+          <div id="sp4-pw-msg" style="font-size:12px;display:none;margin-bottom:8px;padding:6px;border-radius:4px"></div>
+          <button type="submit" class="sbtn grn">💾 Save New Password</button>
+        </form>
       </div></div>
+      <!-- Admin section -->
       <div id="sp4-admin-section" style="display:none;flex-direction:column;gap:14px">
         <div class="sc"><div class="sc-hdr">🎫 Invite Codes</div><div class="sc-body">
           <div class="s-row" style="flex-wrap:wrap;gap:8px">
@@ -501,43 +579,49 @@ console.log('🔥 Firebase + Offline Persistence Ready');
           <div id="codes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:10px"></div>
         </div></div>
         <div class="sc"><div class="sc-hdr">➕ Add New User &amp; Share Credentials</div><div class="sc-body">
-          <div class="s-row"><span class="s-lbl">Username</span><input class="s-inp" id="au-username" placeholder="e.g. wael.samir"></div>
-          <div class="s-row">
-            <span class="s-lbl">Password</span>
-            <input class="s-inp" type="text" id="au-password" placeholder="e.g. hse2024">
-            <button class="sbtn" style="padding:5px 10px;font-size:12px" onclick="auGenPassword()">🎲</button>
-          </div>
-          <div id="au-msg" style="font-size:12px;display:none;margin:4px 0"></div>
-          <div id="au-share-box" style="display:none;background:#e8f4f8;border:1px solid #9ab0c8;border-radius:6px;padding:12px;margin-top:8px">
-            <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px">✅ User created! Share credentials:</div>
-            <div style="font-size:12px;color:#444;margin-bottom:6px">
-              <strong>Username:</strong> <span id="au-show-user" style="font-family:monospace;color:#1a3a5c"></span><br>
-              <strong>Password:</strong> <span id="au-show-pass" style="font-family:monospace;color:#1a3a5c"></span>
+          <!-- ✅ form صحيح لحقول إنشاء المستخدم -->
+          <form onsubmit="adminAddUser();return false;" autocomplete="off">
+            <div class="s-row" style="margin-bottom:8px"><span class="s-lbl">Username</span><input class="s-inp" type="text" id="au-username" autocomplete="off" placeholder="e.g. wael.samir"></div>
+            <div class="s-row" style="margin-bottom:8px">
+              <span class="s-lbl">Password</span>
+              <input class="s-inp" type="text" id="au-password" autocomplete="new-password" placeholder="e.g. hse2024">
+              <button type="button" class="sbtn" style="padding:5px 10px;font-size:12px" onclick="auGenPassword()">🎲</button>
             </div>
-            <div style="background:#fff;border:1px solid #ccc;border-radius:4px;padding:8px;font-size:11px;word-break:break-all;font-family:monospace;color:#555;margin-bottom:10px" id="au-link-box"></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="sbtn grn" style="background:#25D366" onclick="shareWhatsApp()">📱 WhatsApp</button>
-              <button class="sbtn grn" style="background:#0078d4" onclick="shareEmail()">📧 Email</button>
-              <button class="sbtn" onclick="copyShareLink()">📋 Copy Link</button>
+            <div id="au-msg" style="font-size:12px;display:none;margin:4px 0;padding:6px;border-radius:4px"></div>
+            <div id="au-share-box" style="display:none;background:#e8f4f8;border:1px solid #9ab0c8;border-radius:6px;padding:12px;margin-top:8px;margin-bottom:8px">
+              <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:8px">✅ User created! Share credentials:</div>
+              <div style="font-size:12px;color:#444;margin-bottom:6px">
+                <strong>Username:</strong> <span id="au-show-user" style="font-family:monospace;color:#1a3a5c"></span><br>
+                <strong>Password:</strong> <span id="au-show-pass" style="font-family:monospace;color:#1a3a5c"></span>
+              </div>
+              <div style="background:#fff;border:1px solid #ccc;border-radius:4px;padding:8px;font-size:11px;word-break:break-all;font-family:monospace;color:#555;margin-bottom:10px" id="au-link-box"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="sbtn grn" style="background:#25D366" onclick="shareWhatsApp()">📱 WhatsApp</button>
+                <button type="button" class="sbtn grn" style="background:#0078d4" onclick="shareEmail()">📧 Email</button>
+                <button type="button" class="sbtn" onclick="copyShareLink()">📋 Copy Link</button>
+              </div>
             </div>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="sbtn grn" onclick="adminAddUser()">✅ Create User</button>
-            <button class="sbtn" onclick="adminClearAddForm()">✕ Clear</button>
-          </div>
+            <div style="display:flex;gap:8px">
+              <button type="submit" class="sbtn grn">✅ Create User</button>
+              <button type="button" class="sbtn" onclick="adminClearAddForm()">✕ Clear</button>
+            </div>
+          </form>
         </div></div>
         <div class="sc"><div class="sc-hdr">👥 Users Management</div><div class="sc-body">
           <div id="admin-users-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
           <div id="sp4-edit-user-form" style="background:#f5f8fb;border:1px solid #ccd8e4;border-radius:6px;padding:12px;display:none;flex-direction:column;gap:8px">
-            <div class="s-row"><span class="s-lbl" style="min-width:130px">Username</span><input class="s-inp" id="eu-username" placeholder="New username"></div>
-            <div class="s-row"><span class="s-lbl" style="min-width:130px">New Password</span><input class="s-inp" type="password" id="eu-password" placeholder="New password"></div>
-            <div class="s-row" style="gap:8px">
-              <button class="sbtn grn" onclick="adminSaveUser()">💾 Save</button>
-              <button class="sbtn red" onclick="adminDeleteUser()">🗑 Delete</button>
-              <button class="sbtn red" onclick="adminClearUserData()">🧹 Clear Data</button>
-              <button class="sbtn" onclick="adminCancelEdit()">✕ Cancel</button>
-            </div>
-            <div id="sp4-edit-msg" style="font-size:12px;display:none"></div>
+            <!-- ✅ form لتعديل المستخدم -->
+            <form onsubmit="adminSaveUser();return false;" autocomplete="off">
+              <div class="s-row" style="margin-bottom:8px"><span class="s-lbl" style="min-width:130px">Username</span><input class="s-inp" type="text" id="eu-username" autocomplete="off" placeholder="New username"></div>
+              <div class="s-row" style="margin-bottom:8px"><span class="s-lbl" style="min-width:130px">New Password</span><input class="s-inp" type="password" id="eu-password" autocomplete="new-password" placeholder="New password"></div>
+              <div class="s-row" style="gap:8px;flex-wrap:wrap">
+                <button type="submit" class="sbtn grn">💾 Save</button>
+                <button type="button" class="sbtn red" onclick="adminDeleteUser()">🗑 Delete</button>
+                <button type="button" class="sbtn red" onclick="adminClearUserData()">🧹 Clear Data</button>
+                <button type="button" class="sbtn" onclick="adminCancelEdit()">✕ Cancel</button>
+              </div>
+              <div id="sp4-edit-msg" style="font-size:12px;display:none;padding:6px;border-radius:4px"></div>
+            </form>
           </div>
         </div></div>
       </div>
@@ -585,19 +669,25 @@ console.log('🔥 Firebase + Offline Persistence Ready');
         <button class="auth-tab" onclick="authTab('register')">📝 Register</button>
       </div>
       <div id="auth-msg" class="auth-msg"></div>
+      <!-- ✅ Login form صحيح -->
       <div class="auth-panel active" id="ap-login">
-        <div class="auth-group"><label class="auth-label">Username</label><input class="auth-input" id="li-user" placeholder="Enter username" onkeydown="if(event.key==='Enter')doAuthLogin()"></div>
-        <div class="auth-group"><label class="auth-label">Password</label><input class="auth-input" type="password" id="li-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')doAuthLogin()"></div>
-        <button class="auth-btn primary" onclick="doAuthLogin()">🔓 Login</button>
+        <form onsubmit="doAuthLogin();return false;" autocomplete="on">
+          <div class="auth-group"><label class="auth-label">Username</label><input class="auth-input" type="text" id="li-user" autocomplete="username" placeholder="Enter username"></div>
+          <div class="auth-group"><label class="auth-label">Password</label><input class="auth-input" type="password" id="li-pass" autocomplete="current-password" placeholder="Enter password"></div>
+          <button type="submit" class="auth-btn primary">🔓 Login</button>
+        </form>
         <div class="auth-divider">— or —</div>
         <div style="text-align:center"><span class="auth-link" onclick="authTab('register')">Don't have an account? Register with invite code</span></div>
       </div>
+      <!-- ✅ Register form صحيح -->
       <div class="auth-panel" id="ap-register">
-        <div class="auth-group"><label class="auth-label">Invite Code</label><input class="auth-input" id="reg-code" placeholder="Enter invite code" style="letter-spacing:2px;font-weight:700"></div>
-        <div class="auth-group"><label class="auth-label">Username</label><input class="auth-input" id="reg-user" placeholder="Choose a username"></div>
-        <div class="auth-group"><label class="auth-label">Password</label><input class="auth-input" type="password" id="reg-pass" placeholder="Create password (6+ chars)"></div>
-        <div class="auth-group"><label class="auth-label">Confirm Password</label><input class="auth-input" type="password" id="reg-pass2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')doAuthRegister()"></div>
-        <button class="auth-btn primary" onclick="doAuthRegister()">✅ Create Account</button>
+        <form onsubmit="doAuthRegister();return false;" autocomplete="off">
+          <div class="auth-group"><label class="auth-label">Invite Code</label><input class="auth-input" type="text" id="reg-code" autocomplete="off" placeholder="Enter invite code" style="letter-spacing:2px;font-weight:700"></div>
+          <div class="auth-group"><label class="auth-label">Username</label><input class="auth-input" type="text" id="reg-user" autocomplete="username" placeholder="Choose a username"></div>
+          <div class="auth-group"><label class="auth-label">Password</label><input class="auth-input" type="password" id="reg-pass" autocomplete="new-password" placeholder="Create password (6+ chars)"></div>
+          <div class="auth-group"><label class="auth-label">Confirm Password</label><input class="auth-input" type="password" id="reg-pass2" autocomplete="new-password" placeholder="Repeat password"></div>
+          <button type="submit" class="auth-btn primary">✅ Create Account</button>
+        </form>
         <div class="auth-divider">— or —</div>
         <div style="text-align:center"><span class="auth-link" onclick="authTab('login')">Already have an account? Login</span></div>
       </div>
@@ -609,14 +699,16 @@ console.log('🔥 Firebase + Offline Persistence Ready');
 <div class="modal-ov" id="chpw-modal">
   <div class="modal-box">
     <div class="modal-title">🔒 Change Password</div>
-    <div class="auth-group"><label class="auth-label">Current Password</label><input class="auth-input" type="password" id="chpw-old"></div>
-    <div class="auth-group"><label class="auth-label">New Password</label><input class="auth-input" type="password" id="chpw-new"></div>
-    <div class="auth-group"><label class="auth-label">Confirm New Password</label><input class="auth-input" type="password" id="chpw-new2"></div>
-    <div id="chpw-msg" class="auth-msg" style="margin-top:8px"></div>
-    <div class="modal-acts">
-      <button class="sbtn grn" onclick="doChangePassword()">💾 Save</button>
-      <button class="sbtn" onclick="document.getElementById('chpw-modal').classList.remove('open')">Cancel</button>
-    </div>
+    <form onsubmit="doChangePassword();return false;" autocomplete="off">
+      <div class="auth-group"><label class="auth-label">Current Password</label><input class="auth-input" type="password" id="chpw-old" autocomplete="current-password"></div>
+      <div class="auth-group"><label class="auth-label">New Password</label><input class="auth-input" type="password" id="chpw-new" autocomplete="new-password"></div>
+      <div class="auth-group"><label class="auth-label">Confirm New Password</label><input class="auth-input" type="password" id="chpw-new2" autocomplete="new-password"></div>
+      <div id="chpw-msg" class="auth-msg" style="margin-top:8px"></div>
+      <div class="modal-acts">
+        <button type="submit" class="sbtn grn">💾 Save</button>
+        <button type="button" class="sbtn" onclick="document.getElementById('chpw-modal').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -626,11 +718,9 @@ console.log('🔥 Firebase + Offline Persistence Ready');
 
 <script>
 /* ================================================================
-   LAYER 1 — AUTH DATABASE
-   ✅ AUTH محفوظ في localStorage فقط — لا يُكتب أبداً في Firebase
+   LAYER 1 — AUTH DATABASE (localStorage only)
 ================================================================ */
 const AUTH_DB_KEY='hse_auth_db';
-
 function hashPassword(pw){
   let h=0;for(let i=0;i<pw.length;i++)h=Math.imul(31,h)+pw.charCodeAt(i)|0;
   let s=h+'_hse_salt_2024',h2=0;for(let i=0;i<s.length;i++)h2=Math.imul(31,h2)+s.charCodeAt(i)|0;
@@ -655,13 +745,9 @@ function loadAuthDB(){
   };
   saveAuthDB(db);return db;
 }
-function saveAuthDB(db){
-  try{localStorage.setItem(AUTH_DB_KEY,JSON.stringify(db));}catch(e){}
-}
-
+function saveAuthDB(db){try{localStorage.setItem(AUTH_DB_KEY,JSON.stringify(db));}catch(e){}}
 let AUTH=loadAuthDB();
 let currentUser=null;
-
 function getSession(){return AUTH.session;}
 function setSession(u){AUTH.session={username:u.username,role:u.role,ts:Date.now()};saveAuthDB(AUTH);}
 function clearSession(){AUTH.session=null;saveAuthDB(AUTH);}
@@ -681,17 +767,15 @@ const DEF={
   hazard:['Housekeeping','Electrical Hazard','Fire Hazard','Chemical Hazard','Mechanical Hazard',
     'Working at Height','Manual Handling','Slips & Trips','PPE Violation','Environmental Hazard'],
   risk:['Low','Medium','High'],
-  pages:[],imgW:1080,imgH:720,imgFit:'contain',imgQuality:0.85,design:{},logoH:160
+  pages:[],imgW:1080,imgH:720,imgFit:'contain',imgQuality:0.85,design:{},logoH:160,
+  tsEnable:false,tsPos:'BR',tsSize:24,tsColor:'#ffffff',tsBg:'#000000',tsAlpha:65,tsFmt:'datetime'
 };
 let S=JSON.parse(JSON.stringify(DEF));
 
 /* ================================================================
    LAYER 3 — SAVE MANAGER
-   ✅ Firebase-first + localStorage cache
-   ✅ AUTH يُعاد تحميله بعد كل sync لمنع فقدان المستخدمين
 ================================================================ */
 const SaveMgr=(function(){
-
   function docPath(){
     const u=getSession()?.username||'guest';
     return'users/'+encodeURIComponent(u)+'/data/report';
@@ -704,56 +788,37 @@ const SaveMgr=(function(){
     try{localStorage.setItem(cacheKey(),JSON.stringify(data));}
     catch(e){toast('⚠ Storage full — reduce image quality');}
   }
-
-  /* Strip base64 blobs > 200KB — Firestore doc limit 1MB */
   function stripLarge(data){
     const d=JSON.parse(JSON.stringify(data));
     (d.pages||[]).forEach(p=>{
-      if(p.img&&p.img.length>200000){
-        try{localStorage.setItem('hse_img_'+p.id,p.img);}catch(e){}
-        p.img='__LOCAL__'+p.id;
-      }
-      if(p.drawing&&p.drawing.length>200000){
-        try{localStorage.setItem('hse_drw_'+p.id,p.drawing);}catch(e){}
-        p.drawing='__LOCAL__'+p.id;
-      }
+      if(p.img&&p.img.length>200000){try{localStorage.setItem('hse_img_'+p.id,p.img);}catch(e){}p.img='__LOCAL__'+p.id;}
+      if(p.drawing&&p.drawing.length>200000){try{localStorage.setItem('hse_drw_'+p.id,p.drawing);}catch(e){}p.drawing='__LOCAL__'+p.id;}
     });
-    if(d.logo&&d.logo.length>200000){
-      try{localStorage.setItem('hse_logo',d.logo);}catch(e){}
-      d.logo='__LOCAL__logo';
-    }
+    if(d.logo&&d.logo.length>200000){try{localStorage.setItem('hse_logo',d.logo);}catch(e){}d.logo='__LOCAL__logo';}
     return d;
   }
-
-  /* Restore blobs from localStorage placeholders */
   function restoreLarge(data){
     (data.pages||[]).forEach(p=>{
-      if(typeof p.img==='string'&&p.img.startsWith('__LOCAL__'))
-        p.img=localStorage.getItem('hse_img_'+p.id)||null;
-      if(typeof p.drawing==='string'&&p.drawing.startsWith('__LOCAL__'))
-        p.drawing=localStorage.getItem('hse_drw_'+p.id)||null;
+      if(typeof p.img==='string'&&p.img.startsWith('__LOCAL__'))p.img=localStorage.getItem('hse_img_'+p.id)||null;
+      if(typeof p.drawing==='string'&&p.drawing.startsWith('__LOCAL__'))p.drawing=localStorage.getItem('hse_drw_'+p.id)||null;
     });
-    if(data.logo==='__LOCAL__logo')
-      data.logo=localStorage.getItem('hse_logo')||null;
+    if(data.logo==='__LOCAL__logo')data.logo=localStorage.getItem('hse_logo')||null;
     return data;
   }
-
   async function writeFirestore(data){
     if(!window._FB_READY)return;
     const{db,doc,setDoc}=window._FB;
     try{
-      await setDoc(doc(db,docPath()),
-        {payload:JSON.stringify(stripLarge(data)),ts:Date.now()});
+      await setDoc(doc(db,docPath()),{payload:JSON.stringify(stripLarge(data)),ts:Date.now()});
       setSyncStatus('synced');
+      console.log('✅ Firestore saved:', docPath());
     }catch(e){
-      console.warn('Firestore write error:',e);
+      console.error('❌ Firestore write error:',e);
       setSyncStatus('offline');
     }
   }
-
   let _unsub=null,_ownWrite=false,_timer=null;
   const DEBOUNCE=800;
-
   function startListening(){
     if(!window._FB_READY){setTimeout(startListening,500);return;}
     if(_unsub){_unsub();_unsub=null;}
@@ -771,24 +836,17 @@ const SaveMgr=(function(){
           const pagesChanged=JSON.stringify(merged.pages)!==JSON.stringify(S.pages);
           S=merged;
           writeLocal(S);
-          /* ✅ FIX 1 — إعادة تحميل AUTH بعد كل sync من Firebase
-             يمنع مسح المستخدمين الجدد بعد الـ refresh */
+          /* ✅ FIX 1 */
           AUTH=loadAuthDB();
           bootCover();applyDesign();syncSettingsUI();
           if(pagesChanged)renderPagesDOM();
           setSyncStatus('synced');
         }catch(e){console.warn('Snapshot parse error',e);}
       },
-      err=>{
-        console.warn('onSnapshot error:',err);
-        setSyncStatus('offline');
-        loadFromLocal();
-      }
+      err=>{console.warn('onSnapshot error:',err);setSyncStatus('offline');loadFromLocal();}
     );
   }
-
   function stopListening(){if(_unsub){_unsub();_unsub=null;}}
-
   function save(){
     flushNotes();
     S.pages.forEach(p=>{
@@ -805,20 +863,16 @@ const SaveMgr=(function(){
       setTimeout(()=>{_ownWrite=false;},2500);
     },DEBOUNCE);
   }
-
   function loadFromLocal(){
     try{
-      const r=localStorage.getItem(cacheKey())
-           ||localStorage.getItem('hse4')
-           ||localStorage.getItem('hse5');
+      const r=localStorage.getItem(cacheKey())||localStorage.getItem('hse4')||localStorage.getItem('hse5');
       if(r){const p=JSON.parse(r);S=Object.assign(JSON.parse(JSON.stringify(DEF)),p);}
     }catch(e){console.warn('loadFromLocal:',e);}
   }
-
   async function loadOnLogin(){
     loadFromLocal();
     bootCover();renderRtypeBtns();renderPagesDOM();applyDesign();updateNavCount();
-    if(!window._FB_READY)await new Promise(r=>setTimeout(r,1200));
+    if(!window._FB_READY)await new Promise(r=>setTimeout(r,1500));
     if(window._FB_READY){
       const{db,doc,getDoc}=window._FB;
       try{
@@ -829,33 +883,26 @@ const SaveMgr=(function(){
           const restored=restoreLarge(remote);
           S=Object.assign(JSON.parse(JSON.stringify(DEF)),restored);
           writeLocal(S);
-          /* ✅ FIX 2 — إعادة تحميل AUTH بعد أول تحميل من Firestore
-             يمنع مسح المستخدمين بعد login */
+          /* ✅ FIX 2 */
           AUTH=loadAuthDB();
           bootCover();renderRtypeBtns();renderPagesDOM();applyDesign();updateNavCount();
           setSyncStatus('synced');
+          console.log('✅ Loaded from Firestore');
+        }else{
+          console.log('ℹ️ No Firestore data yet — using local cache');
+          setSyncStatus('synced');
         }
-      }catch(e){
-        console.warn('Initial load error:',e);
-        setSyncStatus('offline');
-      }
+      }catch(e){console.error('❌ Initial load error:',e);setSyncStatus('offline');}
     }
     startListening();
   }
-
   return{save,loadOnLogin,startListening,stopListening,loadFromLocal};
 })();
 
 function setSyncStatus(s){
   const b=document.getElementById('sync-badge');if(!b)return;
-  const m={
-    syncing:['⟳ Syncing…','syncing'],
-    synced: ['✓ Synced',  'synced'],
-    offline:['📴 Offline', 'offline'],
-    error:  ['⚠ Error',   'error']
-  };
-  const[txt,cls]=m[s]||m.synced;
-  b.textContent=txt;b.className=cls;
+  const m={syncing:['⟳ Syncing…','syncing'],synced:['✓ Synced','synced'],offline:['📴 Offline','offline'],error:['⚠ Error','error']};
+  const[txt,cls]=m[s]||m.synced;b.textContent=txt;b.className=cls;
 }
 window.addEventListener('online', ()=>{setSyncStatus('syncing');SaveMgr.startListening();toast('🌐 Back online — syncing');});
 window.addEventListener('offline',()=>{setSyncStatus('offline');toast('📴 Offline — changes saved locally');});
@@ -865,11 +912,7 @@ window.addEventListener('offline',()=>{setSyncStatus('offline');toast('📴 Offl
 ================================================================ */
 const SHAPES={},DS={};
 function GP(pid){return S.pages.find(p=>p.id===pid);}
-function flushNotes(){
-  document.querySelectorAll('.note-ta').forEach(ta=>{
-    const p=GP(ta.dataset.pid);if(p)p.note=ta.value;
-  });
-}
+function flushNotes(){document.querySelectorAll('.note-ta').forEach(ta=>{const p=GP(ta.dataset.pid);if(p)p.note=ta.value;});}
 function saveAll(){SaveMgr.save();}
 
 window.addEventListener('load',()=>{
@@ -904,6 +947,7 @@ function showSTab(i){
   if(i===4)refreshSP4();
 }
 
+/* Cover */
 function bootCover(){
   const g=id=>document.getElementById(id);
   if(g('cv-name'))    g('cv-name').value    =S.cover.name   ||'';
@@ -917,6 +961,7 @@ function bootCover(){
 function SC(f,v){S.cover[f]=v;saveAll();}
 function liveCompany(v){S.company=v;document.getElementById('cv-company-name').textContent=v||'Company Name';}
 
+/* Logo */
 function uploadLogo(inp){
   const f=inp.files[0];if(!f)return;
   const r=new FileReader();
@@ -925,15 +970,11 @@ function uploadLogo(inp){
 }
 function deleteLogo(){S.logo=null;updateLogoDisplay();saveAll();}
 function updateLogoDisplay(){
-  const box=document.getElementById('cv-logo-box'),
-        prev=document.getElementById('s-logo-prev'),
-        del=document.getElementById('s-logo-del');
+  const box=document.getElementById('cv-logo-box'),prev=document.getElementById('s-logo-prev'),del=document.getElementById('s-logo-del');
   if(!box)return;
   if(S.logo){
     let img=document.getElementById('cv-logo-img');
-    if(!img){img=document.createElement('img');img.id='cv-logo-img';
-      img.style.cssText='width:100%;height:100%;object-fit:contain;object-position:center;display:block;';
-      box.innerHTML='';box.appendChild(img);}
+    if(!img){img=document.createElement('img');img.id='cv-logo-img';img.style.cssText='width:100%;height:100%;object-fit:contain;object-position:center;display:block;';box.innerHTML='';box.appendChild(img);}
     img.src=S.logo;
     if(prev){prev.src=S.logo;prev.style.display='block';}
     if(del)del.style.display='inline-block';
@@ -953,11 +994,9 @@ function renderRtypeBtns(){
     c.appendChild(b);
   });
 }
-function updateNavCount(){
-  const el=document.getElementById('nav-pc');
-  if(el)el.textContent=S.pages.length?'('+S.pages.length+' pages)':'';
-}
+function updateNavCount(){const el=document.getElementById('nav-pc');if(el)el.textContent=S.pages.length?'('+S.pages.length+' pages)':'';}
 
+/* Pages */
 function renderPagesDOM(){
   const list=document.getElementById('pages-list');if(!list)return;
   list.innerHTML='';
@@ -995,45 +1034,25 @@ function buildPageEl(page,idx){
   <div class="sp" id="sp-${page.id}">
     <div class="sp-sec">
       <div class="sp-lbl">In charge person</div>
-      <div class="sp-sel-row">
-        <select class="sp-sel" id="sel-resp-${page.id}" onchange="updateResp('${page.id}',this.value)">
-          ${S.responsible.map(r=>`<option value="${r}"${page.responsible===r?' selected':''}>${r}</option>`).join('')}
-        </select>
-      </div>
+      <div class="sp-sel-row"><select class="sp-sel" id="sel-resp-${page.id}" onchange="updateResp('${page.id}',this.value)">${S.responsible.map(r=>`<option value="${r}"${page.responsible===r?' selected':''}>${r}</option>`).join('')}</select></div>
       <div id="sp-resp-${page.id}">${buildRespRows(page)}</div>
     </div>
     <div class="sp-spacer"></div>
     <div class="sp-sec">
       <div class="sp-lbl">Hazard Categories</div>
-      <div class="sp-sel-row">
-        <select class="sp-sel" id="sel-haz-${page.id}" onchange="updateHaz('${page.id}',this.value)">
-          ${S.hazard.map(h=>`<option value="${h}"${page.hazard===h?' selected':''}>${h}</option>`).join('')}
-        </select>
-      </div>
+      <div class="sp-sel-row"><select class="sp-sel" id="sel-haz-${page.id}" onchange="updateHaz('${page.id}',this.value)">${S.hazard.map(h=>`<option value="${h}"${page.hazard===h?' selected':''}>${h}</option>`).join('')}</select></div>
       <div class="sp-val" id="sp-haz-val-${page.id}">${page.hazard||''}</div>
     </div>
     <div class="sp-spacer"></div>
     <div class="sp-sec">
       <div class="sp-lbl">Risk Rating</div>
-      <div class="sp-sel-row">
-        <select class="sp-sel" id="sel-risk-${page.id}" onchange="updateRisk('${page.id}',this.value)">
-          ${S.risk.map(r=>`<option value="${r}"${page.risk===r?' selected':''}>${r}</option>`).join('')}
-        </select>
-      </div>
-      <div class="sp-val ${riskValCls(page.risk)}" id="sp-risk-val-${page.id}"
-        style="font-size:18px;font-weight:800;color:${riskColor(page.risk)}">${page.risk||''}</div>
+      <div class="sp-sel-row"><select class="sp-sel" id="sel-risk-${page.id}" onchange="updateRisk('${page.id}',this.value)">${S.risk.map(r=>`<option value="${r}"${page.risk===r?' selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="sp-val ${riskValCls(page.risk)}" id="sp-risk-val-${page.id}" style="font-size:18px;font-weight:800;color:${riskColor(page.risk)}">${page.risk||''}</div>
     </div>
   </div>
   <div class="img-frame" id="ifr-${page.id}">
-    ${page.img
-      ?`<img class="base-img" id="bimg-${page.id}" src="${page.img}" alt="obs" style="object-fit:${fit}">`
-      :`<div class="img-ph" id="iph-${page.id}">
-          <div class="ico">📷</div><div>Tap to add image</div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="img-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button>
-            <button class="img-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button>
-          </div>
-        </div>`}
+    ${page.img?`<img class="base-img" id="bimg-${page.id}" src="${page.img}" alt="obs" style="object-fit:${fit}">`
+      :`<div class="img-ph" id="iph-${page.id}"><div class="ico">📷</div><div>Tap to add image</div><div style="display:flex;gap:8px;margin-top:8px"><button class="img-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button><button class="img-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button></div></div>`}
     <canvas class="draw-canvas" id="dc-${page.id}" style="pointer-events:none"></canvas>
     <div class="img-toolbar" id="dtb-${page.id}">
       <button class="tb-btn" id="tb-pen-${page.id}"    onclick="setTool('${page.id}','pen')">✏️ Pen</button>
@@ -1070,8 +1089,7 @@ function buildPageEl(page,idx){
   setTimeout(()=>{
     initCanvas(page.id);
     if(page.drawing||page.shapes)restoreDrawing(page);
-    const ta=document.getElementById('ta-'+page.id),nf=document.getElementById('nf-'+page.id);
-    if(ta&&nf)fitTA(ta,nf);
+    const ta=document.getElementById('ta-'+page.id);if(ta)shrinkIfNeeded(ta);
   },80);
   return wrap;
 }
@@ -1079,12 +1097,9 @@ function buildPageEl(page,idx){
 function buildRespRows(page){
   const mgr=S.mgr||'District Manager',eng=S.eng||'Maintenance Engineer';
   const r=(page.responsible||'').toLowerCase();
-  if(r.includes('both'))
-    return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div><div class="sp-val">${mgr}</div><div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div><div class="sp-val">${eng}</div>`;
-  if(r.includes('manager')||r.includes('district'))
-    return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div><div class="sp-val">${mgr}</div>`;
-  if(r.includes('engineer')||r.includes('maint'))
-    return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div><div class="sp-val">${eng}</div>`;
+  if(r.includes('both'))return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div><div class="sp-val">${mgr}</div><div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div><div class="sp-val">${eng}</div>`;
+  if(r.includes('manager')||r.includes('district'))return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">District Manager of Batch Plant's :</div><div class="sp-val">${mgr}</div>`;
+  if(r.includes('engineer')||r.includes('maint'))return`<div class="sp-lbl" style="background:#2d5a8e;font-size:11px;padding:4px 8px">Maintenance Engineer :</div><div class="sp-val">${eng}</div>`;
   return`<div class="sp-val">${page.responsible||''}</div>`;
 }
 function riskCls(r){if(!r)return'';const v=r.toLowerCase();return v==='high'?' high':v==='medium'?' medium':v==='low'?' low':'';}
@@ -1103,26 +1118,24 @@ function updateRisk(pid,val){
 function movePage(pid,dir){
   flushNotes();const idx=S.pages.findIndex(p=>p.id===pid),ni=idx+dir;
   if(ni<0||ni>=S.pages.length)return;
-  [S.pages[idx],S.pages[ni]]=[S.pages[ni],S.pages[idx]];
-  saveAll();renderPagesDOM();
+  [S.pages[idx],S.pages[ni]]=[S.pages[ni],S.pages[idx]];saveAll();renderPagesDOM();
 }
 function askDelete(pid){
   openModal('Delete Page','Delete this page? Cannot be undone.',()=>{
     flushNotes();S.pages=S.pages.filter(p=>p.id!==pid);saveAll();
     const el=document.getElementById('rp-'+pid);if(el)el.remove();
-    document.getElementById('page-count').textContent=S.pages.length;
-    updateNavCount();renumber();closeModal();
+    document.getElementById('page-count').textContent=S.pages.length;updateNavCount();renumber();closeModal();
   });
 }
 function renumber(){
   document.querySelectorAll('.rp').forEach((el,i)=>{
     const pid=el.id.replace('rp-',''),num=String(i+1).padStart(2,'0');
-    const lbl=document.getElementById('note-lbl-'+pid);
-    if(lbl)lbl.textContent='Observation / Note For Page '+num+' — وصف المشكلة رقم '+num;
+    const lbl=document.getElementById('note-lbl-'+pid);if(lbl)lbl.textContent='Observation / Note For Page '+num+' — وصف المشكلة رقم '+num;
     const mic=document.getElementById('mic-'+pid);if(mic)mic.textContent='🎤 '+num;
   });
 }
 
+/* Notes */
 function onNoteInput(pid){const ta=document.getElementById('ta-'+pid);if(ta){shrinkIfNeeded(ta);UF(pid,'note',ta.value);}}
 function shrinkIfNeeded(ta){
   if(!ta)return;ta.style.fontSize='36px';ta.style.lineHeight='1.3';
@@ -1132,79 +1145,115 @@ function shrinkIfNeeded(ta){
 function fitTA(ta){shrinkIfNeeded(ta);}
 function refitAllNotes(){document.querySelectorAll('.note-ta').forEach(ta=>shrinkIfNeeded(ta));}
 
+/* ================================================================
+   TIMESTAMP — مدمج داخل الصورة نفسها
+================================================================ */
+function buildTimestampText(d){
+  const fmt=S.tsFmt||'datetime';
+  if(fmt==='date')
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  if(fmt==='time')
+    return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  if(fmt==='arabic')
+    return d.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'})
+          +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  /* datetime default */
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+        +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+}
+
+function stampImage(canvas, captureTime){
+  if(!S.tsEnable)return;
+  const ctx=canvas.getContext('2d');
+  const fs   = parseInt(S.tsSize)||24;
+  const col  = S.tsColor||'#ffffff';
+  const bg   = S.tsBg   ||'#000000';
+  const alpha= (parseInt(S.tsAlpha)||65)/100;
+  const pos  = S.tsPos  ||'BR';
+  const W=canvas.width, H=canvas.height;
+  const txt  = buildTimestampText(captureTime||new Date());
+
+  ctx.font='bold '+fs+'px "Segoe UI",Arial,sans-serif';
+  const tw=ctx.measureText(txt).width;
+  const pad=Math.max(6,fs*0.3), margin=Math.max(8,fs*0.4);
+  const bw=tw+pad*2, bh=fs+pad*2;
+
+  let bx,by;
+  if(pos==='BR'){bx=W-bw-margin;by=H-bh-margin;}
+  else if(pos==='BL'){bx=margin;by=H-bh-margin;}
+  else if(pos==='TR'){bx=W-bw-margin;by=margin;}
+  else{bx=margin;by=margin;}
+
+  ctx.save();
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle=bg;
+  if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,4);
+  else ctx.rect(bx,by,bw,bh);
+  ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle=col;
+  ctx.textBaseline='top';
+  ctx.fillText(txt,bx+pad,by+pad);
+  ctx.restore();
+}
+
+/* ================================================================
+   IMAGE HANDLING
+================================================================ */
 function pickImg(pid, cam){
   if(cam){
-    // حاول تفتح تطبيق Timestamp Camera الخارجي أولاً
-    // إذا مش مثبت، افتح كاميرا الجهاز العادية
-    const tsApp = document.createElement('a');
-    tsApp.href = 'intent://camera#Intent;scheme=timestampcamera;package=com.jeyluta.timestampcamerafree;end';
-    // نستخدم input كاميرا عادية كـ fallback
-    const inp = document.getElementById('g-camera');
-    inp.value = '';
-    inp.onchange = () => processImg(inp.files[0], pid);
-
-    // على Android حاول فتح التطبيق الخارجي
+    /* محاولة فتح Timestamp Camera على Android */
     if(/Android/i.test(navigator.userAgent)){
-      // جرب تفتح Timestamp Camera عبر intent
-      const intentUrl = 'intent://open#Intent;package=com.jeyluta.timestampcamerafree;scheme=timestampcamera;end';
-      const iframe = document.createElement('iframe');
-      iframe.style.display='none';
-      document.body.appendChild(iframe);
-      iframe.src = intentUrl;
-      // بعد ثانية، لو مفتحش التطبيق، افتح الكاميرا العادية
-      setTimeout(()=>{
-        document.body.removeChild(iframe);
-        // افتح الكاميرا العادية كـ fallback
-        inp.click();
-      }, 1500);
-      toast('📷 يحاول فتح Timestamp Camera… سيفتح الكاميرا العادية إن لم يكن مثبتاً');
-    } else {
-      // على iOS أو Desktop — افتح الكاميرا العادية مباشرة مع timestamp مدمج
-      inp.click();
+      /* Intent URL لتطبيق Timestamp Camera Free */
+      const intentUrl='intent://open#Intent;package=com.jeyluta.timestampcamerafree;action=android.media.action.IMAGE_CAPTURE;end';
+      /* نفتح كاميرا الجهاز كـ fallback مهما */
+      const inp=document.getElementById('g-camera');
+      inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);
+      /* جرّب Intent — لو مش مثبت يرجع خطأ بسرعة */
+      try{window.location.href=intentUrl;}catch(e){}
+      /* بعد نص ثانية افتح الكاميرا العادية مع Timestamp مدمج */
+      setTimeout(()=>inp.click(),400);
+      toast('📷 يفتح الكاميرا مع Timestamp مدمج');
+    }else{
+      const inp=document.getElementById('g-camera');
+      inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
     }
-  } else {
-    const inp = document.getElementById('g-gallery');
-    inp.value = '';
-    inp.onchange = () => processImg(inp.files[0], pid);
-    inp.click();
+  }else{
+    const inp=document.getElementById('g-gallery');
+    inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
   }
 }
 
-function processImg(file, pid){
-  if(!file) return;
-  const captureTime = new Date(); // سجّل وقت التصوير فوراً
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const mw = S.imgW||1080, mh = S.imgH||720;
-      let w = img.width, h = img.height;
-      const sc = Math.min(mw/w, mh/h, 1);
-      w = Math.round(w*sc); h = Math.round(h*sc);
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      // ✅ أضف الـ Timestamp على الصورة
-      stampImage(canvas, captureTime);
-      const data = canvas.toDataURL('image/jpeg', S.imgQuality||0.85);
-      const p = GP(pid); if(!p) return;
-      p.img = data; saveAll();
-      const frame = document.getElementById('ifr-'+pid);
+function processImg(file,pid){
+  if(!file)return;
+  const captureTime=new Date(); /* وقت التصوير الحقيقي */
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const mw=S.imgW||1080,mh=S.imgH||720;
+      let w=img.width,h=img.height;
+      const sc=Math.min(mw/w,mh/h,1);
+      w=Math.round(w*sc);h=Math.round(h*sc);
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      /* ✅ Stamp timestamp على الصورة */
+      stampImage(canvas,captureTime);
+      const data=canvas.toDataURL('image/jpeg',S.imgQuality||0.85);
+      const p=GP(pid);if(!p)return;
+      p.img=data;saveAll();
+      const frame=document.getElementById('ifr-'+pid);
       if(frame){
-        const ph = document.getElementById('iph-'+pid); if(ph) ph.remove();
-        let bi = document.getElementById('bimg-'+pid);
-        if(!bi){
-          bi = document.createElement('img'); bi.className='base-img'; bi.id='bimg-'+pid;
-          bi.alt='obs'; bi.style.objectFit=S.imgFit||'cover';
-          frame.insertBefore(bi, frame.firstChild);
-        }
-        bi.src = data;
+        const ph=document.getElementById('iph-'+pid);if(ph)ph.remove();
+        let bi=document.getElementById('bimg-'+pid);
+        if(!bi){bi=document.createElement('img');bi.className='base-img';bi.id='bimg-'+pid;bi.alt='obs';bi.style.objectFit=S.imgFit||'cover';frame.insertBefore(bi,frame.firstChild);}
+        bi.src=data;
       }
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);
 }
+
 function clearImg(pid){
   const p=GP(pid);if(!p)return;p.img=null;saveAll();
   const bi=document.getElementById('bimg-'+pid);if(bi)bi.remove();
@@ -1230,8 +1279,7 @@ function initCanvas(pid){
     if(tmp.width>0&&tmp.height>0)canvas.getContext('2d').drawImage(tmp,0,0,w,h);
   };
   resize();new ResizeObserver(resize).observe(frame);
-  DS[pid]={tool:null,color:'#e8001a',size:3,isDown:false,startX:0,startY:0,
-    currentShape:null,undoStack:[],moveTarget:null,moveDx:0,moveDy:0};
+  DS[pid]={tool:null,color:'#e8001a',size:3,isDown:false,startX:0,startY:0,currentShape:null,undoStack:[],moveTarget:null,moveDx:0,moveDy:0};
   if(!SHAPES[pid])SHAPES[pid]=[];
   canvas.style.pointerEvents='none';canvas.style.cursor='default';
   canvas.addEventListener('pointerdown',e=>startDraw(e,pid));
@@ -1254,8 +1302,7 @@ function setTool(pid,tool){
 }
 function getPos(e,canvas){
   const r=canvas.getBoundingClientRect();
-  return{x:(e.clientX||e.touches?.[0]?.clientX||0)-r.left,
-         y:(e.clientY||e.touches?.[0]?.clientY||0)-r.top};
+  return{x:(e.clientX||e.touches?.[0]?.clientX||0)-r.left,y:(e.clientY||e.touches?.[0]?.clientY||0)-r.top};
 }
 function redrawShapes(pid){
   const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
@@ -1264,246 +1311,140 @@ function redrawShapes(pid){
 }
 function drawShape(ctx,s){
   ctx.save();ctx.strokeStyle=s.color||'#e8001a';ctx.fillStyle=s.color||'#e8001a';
-  ctx.lineWidth=s.size||3;ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
-  if(s.type==='pen'){
-    if(!s.path||s.path.length<2){ctx.restore();return;}
-    ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);
-    s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
-  }else if(s.type==='highlight'){
-    ctx.globalAlpha=0.38;
-    const x=Math.min(s.x1,s.x2),y=Math.min(s.y1,s.y2);
-    ctx.fillRect(x,y,Math.abs(s.x2-s.x1),Math.abs(s.y2-s.y1));
-  }else if(s.type==='arrow'){drawArrow(ctx,s.x1,s.y1,s.x2,s.y2);
-  }else if(s.type==='rect'){ctx.strokeRect(s.x1,s.y1,s.x2-s.x1,s.y2-s.y1);
-  }else if(s.type==='circle'){
-    const rx=Math.abs(s.x2-s.x1)/2,ry=Math.abs(s.y2-s.y1)/2;
-    const cx=s.x1+(s.x2-s.x1)/2,cy=s.y1+(s.y2-s.y1)/2;
-    ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();
-  }else if(s.type==='text'){
-    ctx.font='bold '+((s.size||3)*5+10)+'px \'Segoe UI\',Arial,sans-serif';
-    ctx.fillText(s.text||'',s.x1,s.y1);
-  }else if(s.type==='eraser'){
-    ctx.globalCompositeOperation='destination-out';ctx.lineWidth=(s.size||3)*4;
-    if(!s.path||s.path.length<2){ctx.restore();return;}
-    ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);
-    s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
-  }
+  ctx.lineWidth=s.size||3;ctx.lineCap='round';ctx.lineJoin='round';ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  if(s.type==='pen'){if(!s.path||s.path.length<2){ctx.restore();return;}ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();}
+  else if(s.type==='highlight'){ctx.globalAlpha=0.38;const x=Math.min(s.x1,s.x2),y=Math.min(s.y1,s.y2);ctx.fillRect(x,y,Math.abs(s.x2-s.x1),Math.abs(s.y2-s.y1));}
+  else if(s.type==='arrow'){drawArrow(ctx,s.x1,s.y1,s.x2,s.y2);}
+  else if(s.type==='rect'){ctx.strokeRect(s.x1,s.y1,s.x2-s.x1,s.y2-s.y1);}
+  else if(s.type==='circle'){const rx=Math.abs(s.x2-s.x1)/2,ry=Math.abs(s.y2-s.y1)/2,cx=s.x1+(s.x2-s.x1)/2,cy=s.y1+(s.y2-s.y1)/2;ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();}
+  else if(s.type==='text'){ctx.font='bold '+((s.size||3)*5+10)+'px \'Segoe UI\',Arial,sans-serif';ctx.fillText(s.text||'',s.x1,s.y1);}
+  else if(s.type==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=(s.size||3)*4;if(!s.path||s.path.length<2){ctx.restore();return;}ctx.beginPath();ctx.moveTo(s.path[0].x,s.path[0].y);s.path.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();}
   ctx.restore();
 }
 function drawArrow(ctx,x1,y1,x2,y2){
   const hs=14,angle=Math.atan2(y2-y1,x2-x1);
   ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(x2,y2);
-  ctx.lineTo(x2-hs*Math.cos(angle-Math.PI/6),y2-hs*Math.sin(angle-Math.PI/6));
-  ctx.lineTo(x2-hs*Math.cos(angle+Math.PI/6),y2-hs*Math.sin(angle+Math.PI/6));
-  ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-hs*Math.cos(angle-Math.PI/6),y2-hs*Math.sin(angle-Math.PI/6));ctx.lineTo(x2-hs*Math.cos(angle+Math.PI/6),y2-hs*Math.sin(angle+Math.PI/6));ctx.closePath();ctx.fill();
 }
 function hitTest(s,x,y){
   const pad=14;
-  if(s.type==='pen'||s.type==='eraser')
-    return(s.path||[]).some(p=>Math.hypot(p.x-x,p.y-y)<(s.size||3)*4+pad);
-  const x1=Math.min(s.x1??x,s.x2??x)-pad,x2=Math.max(s.x1??x,s.x2??x)+pad;
-  const y1=Math.min(s.y1??y,s.y2??y)-pad,y2=Math.max(s.y1??y,s.y2??y)+pad;
+  if(s.type==='pen'||s.type==='eraser')return(s.path||[]).some(p=>Math.hypot(p.x-x,p.y-y)<(s.size||3)*4+pad);
+  const x1=Math.min(s.x1??x,s.x2??x)-pad,x2=Math.max(s.x1??x,s.x2??x)+pad,y1=Math.min(s.y1??y,s.y2??y)-pad,y2=Math.max(s.y1??y,s.y2??y)+pad;
   return x>=x1&&x<=x2&&y>=y1&&y<=y2;
 }
 function startDraw(e,pid){
   e.preventDefault();const d=DS[pid];if(!d)return;if(!SHAPES[pid])SHAPES[pid]=[];
-  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  const{x,y}=getPos(e,canvas);d.isDown=true;d.startX=x;d.startY=y;
-  if(d.tool==='move'){
-    for(let i=SHAPES[pid].length-1;i>=0;i--){
-      if(hitTest(SHAPES[pid][i],x,y)){d.moveTarget=i;d.moveDx=x;d.moveDy=y;return;}
-    }
-    d.moveTarget=null;return;
-  }
-  if(d.tool==='text'){
-    const txt=prompt('Enter annotation:','');if(!txt)return;
-    SHAPES[pid].push({type:'text',x1:x,y1:y,x2:x+200,y2:y+30,color:d.color,size:d.size,text:txt});
-    redrawShapes(pid);pushUndo(pid);d.isDown=false;return;
-  }
-  if(d.tool==='pen'||d.tool==='eraser')
-    d.currentShape={type:d.tool,color:d.color,size:d.size,path:[{x,y}]};
-  else if(d.tool==='highlight')
-    d.currentShape={type:'highlight',x1:x,y1:y,x2:x,y2:y,color:d.color,size:d.size};
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;const{x,y}=getPos(e,canvas);
+  d.isDown=true;d.startX=x;d.startY=y;
+  if(d.tool==='move'){for(let i=SHAPES[pid].length-1;i>=0;i--){if(hitTest(SHAPES[pid][i],x,y)){d.moveTarget=i;d.moveDx=x;d.moveDy=y;return;}}d.moveTarget=null;return;}
+  if(d.tool==='text'){const txt=prompt('Enter annotation:','');if(!txt)return;SHAPES[pid].push({type:'text',x1:x,y1:y,x2:x+200,y2:y+30,color:d.color,size:d.size,text:txt});redrawShapes(pid);pushUndo(pid);d.isDown=false;return;}
+  if(d.tool==='pen'||d.tool==='eraser')d.currentShape={type:d.tool,color:d.color,size:d.size,path:[{x,y}]};
+  else if(d.tool==='highlight')d.currentShape={type:'highlight',x1:x,y1:y,x2:x,y2:y,color:d.color,size:d.size};
   else d.currentShape=null;
 }
 function moveDraw(e,pid){
   e.preventDefault();const d=DS[pid];if(!d||!d.isDown)return;if(!SHAPES[pid])SHAPES[pid]=[];
   const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
   const ctx=canvas.getContext('2d'),{x,y}=getPos(e,canvas);
-  if(d.tool==='move'){
-    if(d.moveTarget===null||d.moveTarget===undefined)return;
-    const s=SHAPES[pid][d.moveTarget],dx=x-d.moveDx,dy=y-d.moveDy;
-    d.moveDx=x;d.moveDy=y;
-    if(s.path)s.path=s.path.map(p=>({x:p.x+dx,y:p.y+dy}));
-    if(s.x1!==undefined){s.x1+=dx;s.x2+=dx;s.y1+=dy;s.y2+=dy;}
-    redrawShapes(pid);return;
-  }
-  if(d.tool==='pen'||d.tool==='eraser'){
-    if(d.currentShape){d.currentShape.path.push({x,y});redrawShapes(pid);drawShape(ctx,d.currentShape);}return;
-  }
-  if(d.tool==='highlight'){
-    if(d.currentShape){d.currentShape.x2=x;d.currentShape.y2=y;redrawShapes(pid);drawShape(ctx,d.currentShape);}return;
-  }
+  if(d.tool==='move'){if(d.moveTarget===null||d.moveTarget===undefined)return;const s=SHAPES[pid][d.moveTarget],dx=x-d.moveDx,dy=y-d.moveDy;d.moveDx=x;d.moveDy=y;if(s.path)s.path=s.path.map(p=>({x:p.x+dx,y:p.y+dy}));if(s.x1!==undefined){s.x1+=dx;s.x2+=dx;s.y1+=dy;s.y2+=dy;}redrawShapes(pid);return;}
+  if(d.tool==='pen'||d.tool==='eraser'){if(d.currentShape){d.currentShape.path.push({x,y});redrawShapes(pid);drawShape(ctx,d.currentShape);}return;}
+  if(d.tool==='highlight'){if(d.currentShape){d.currentShape.x2=x;d.currentShape.y2=y;redrawShapes(pid);drawShape(ctx,d.currentShape);}return;}
   redrawShapes(pid);ctx.save();ctx.strokeStyle=d.color;ctx.lineWidth=d.size;ctx.lineCap='round';
   if(d.tool==='arrow')drawArrow(ctx,d.startX,d.startY,x,y);
   else if(d.tool==='rect')ctx.strokeRect(d.startX,d.startY,x-d.startX,y-d.startY);
-  else if(d.tool==='circle'){
-    const rx=Math.abs(x-d.startX)/2,ry=Math.abs(y-d.startY)/2;
-    const cx=d.startX+(x-d.startX)/2,cy=d.startY+(y-d.startY)/2;
-    ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();
-  }
+  else if(d.tool==='circle'){const rx=Math.abs(x-d.startX)/2,ry=Math.abs(y-d.startY)/2,cx=d.startX+(x-d.startX)/2,cy=d.startY+(y-d.startY)/2;ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,2*Math.PI);ctx.stroke();}
   ctx.restore();
 }
 function endDraw(e,pid){
   const d=DS[pid];if(!d||!d.isDown)return;d.isDown=false;if(!SHAPES[pid])SHAPES[pid]=[];
-  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;
-  const{x,y}=getPos(e,canvas);
+  const canvas=document.getElementById('dc-'+pid);if(!canvas)return;const{x,y}=getPos(e,canvas);
   if(d.tool==='move'){d.moveTarget=null;pushUndo(pid);saveAll();return;}
-  if(d.tool==='pen'||d.tool==='eraser'||d.tool==='highlight'){
-    if(d.currentShape){
-      if(d.tool==='highlight'){d.currentShape.x2=x;d.currentShape.y2=y;}
-      SHAPES[pid].push(d.currentShape);d.currentShape=null;redrawShapes(pid);
-    }
-  }else if(['arrow','rect','circle'].includes(d.tool)){
-    SHAPES[pid].push({type:d.tool,x1:d.startX,y1:d.startY,x2:x,y2:y,color:d.color,size:d.size});
-    redrawShapes(pid);
-  }
+  if(d.tool==='pen'||d.tool==='eraser'||d.tool==='highlight'){if(d.currentShape){if(d.tool==='highlight'){d.currentShape.x2=x;d.currentShape.y2=y;}SHAPES[pid].push(d.currentShape);d.currentShape=null;redrawShapes(pid);}}
+  else if(['arrow','rect','circle'].includes(d.tool)){SHAPES[pid].push({type:d.tool,x1:d.startX,y1:d.startY,x2:x,y2:y,color:d.color,size:d.size});redrawShapes(pid);}
   pushUndo(pid);saveAll();
 }
-function pushUndo(pid){
-  if(!DS[pid])return;if(!DS[pid].undoStack)DS[pid].undoStack=[];
-  if(DS[pid].undoStack.length>=20)DS[pid].undoStack.shift();
-  DS[pid].undoStack.push(JSON.stringify(SHAPES[pid]||[]));
-}
-function undoDraw(pid){
-  const d=DS[pid];if(!d||!d.undoStack||!d.undoStack.length)return;
-  d.undoStack.pop();
-  SHAPES[pid]=d.undoStack.length?JSON.parse(d.undoStack[d.undoStack.length-1]):[];
-  redrawShapes(pid);saveAll();
-}
-function clearDraw(pid){
-  SHAPES[pid]=[];if(DS[pid])DS[pid].undoStack=[];redrawShapes(pid);
-  const p=GP(pid);if(p){p.drawing=null;p.shapes=null;saveAll();}
-}
+function pushUndo(pid){if(!DS[pid])return;if(!DS[pid].undoStack)DS[pid].undoStack=[];if(DS[pid].undoStack.length>=20)DS[pid].undoStack.shift();DS[pid].undoStack.push(JSON.stringify(SHAPES[pid]||[]));}
+function undoDraw(pid){const d=DS[pid];if(!d||!d.undoStack||!d.undoStack.length)return;d.undoStack.pop();SHAPES[pid]=d.undoStack.length?JSON.parse(d.undoStack[d.undoStack.length-1]):[];redrawShapes(pid);saveAll();}
+function clearDraw(pid){SHAPES[pid]=[];if(DS[pid])DS[pid].undoStack=[];redrawShapes(pid);const p=GP(pid);if(p){p.drawing=null;p.shapes=null;saveAll();}}
 function restoreDrawing(page){
   if(!SHAPES[page.id])SHAPES[page.id]=[];
   if(page.shapes&&page.shapes.length){SHAPES[page.id]=page.shapes;setTimeout(()=>redrawShapes(page.id),150);return;}
   if(!page.drawing)return;
   const canvas=document.getElementById('dc-'+page.id);if(!canvas)return;
-  const img=new Image();
-  img.onload=()=>canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-  img.src=page.drawing;
+  const img=new Image();img.onload=()=>canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);img.src=page.drawing;
 }
 
-/* Speech recognition — إصلاح شامل */
-let _rec=null, _recPid=null, _recStream=null;
-
+/* ================================================================
+   SPEECH RECOGNITION — إصلاح شامل
+================================================================ */
+let _rec=null,_recPid=null,_recStream=null;
 async function toggleMic(pid){
-  const btn = document.getElementById('mic-'+pid);
-  const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if(!SR){
-    toast('⚠ التسجيل الصوتي يحتاج Chrome أو Edge');
-    return;
+  const btn=document.getElementById('mic-'+pid);
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('⚠ التسجيل الصوتي يحتاج Chrome أو Edge');return;}
+  if(_rec&&_recPid===pid){_rec.stop();if(_recStream){_recStream.getTracks().forEach(t=>t.stop());_recStream=null;}return;}
+  if(_rec){_rec.abort();if(_recStream){_recStream.getTracks().forEach(t=>t.stop());_recStream=null;}_rec=null;_recPid=null;}
+  try{_recStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}
+  catch(e){
+    const errs={NotAllowedError:'⚠ ارفض الميكروفون — اسمح له من أيقونة القفل في المتصفح',PermissionDeniedError:'⚠ إذن الميكروفون مرفوض',NotFoundError:'⚠ لا يوجد ميكروفون متصل',NotReadableError:'⚠ الميكروفون مستخدم من تطبيق آخر'};
+    toast(errs[e.name]||'⚠ خطأ في الميكروفون: '+e.message);return;
   }
-
-  // إيقاف التسجيل الحالي
-  if(_rec && _recPid===pid){
-    _rec.stop();
-    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
-    return;
-  }
-  if(_rec){
-    _rec.abort();
-    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
-    _rec=null; _recPid=null;
-  }
-
-  // اطلب إذن الميكروفون صراحةً
-  try{
-    _recStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
-    // لا نستخدم الـ stream مباشرة — بس الطلب يضمن الإذن
-  } catch(e){
-    if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
-      toast('⚠ ارفض الميكروفون — اضغط على أيقونة القفل في المتصفح واسمح بالميكروفون');
-    } else if(e.name==='NotFoundError'){
-      toast('⚠ لا يوجد ميكروفون متصل بالجهاز');
-    } else {
-      toast('⚠ خطأ في الميكروفون: '+e.message);
-    }
-    return;
-  }
-
-  const ta = document.getElementById('ta-'+pid);
-  if(ta) ta.focus();
-
-  _recPid = pid;
-  _rec    = new SR();
-  _rec.lang            = 'ar-EG';
-  _rec.continuous      = true;
-  _rec.interimResults  = true;
-  _rec.maxAlternatives = 1;
-
-  if(btn) btn.classList.add('rec');
-  let finalText = (ta ? ta.value : '');
-
-  _rec.onstart = () => toast('🎤 جارٍ التسجيل… اضغط 🎤 مجدداً للإيقاف');
-
-  _rec.onresult = e => {
-    let interim = '';
-    for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
-      else interim += e.results[i][0].transcript;
-    }
-    if(ta){ ta.value = finalText + interim; shrinkIfNeeded(ta); }
+  const ta=document.getElementById('ta-'+pid);if(ta)ta.focus();
+  _recPid=pid;_rec=new SR();
+  _rec.lang='ar-EG';_rec.continuous=true;_rec.interimResults=true;_rec.maxAlternatives=1;
+  if(btn)btn.classList.add('rec');
+  let finalText=ta?ta.value:'';
+  _rec.onstart=()=>toast('🎤 جارٍ التسجيل… اضغط 🎤 مجدداً للإيقاف');
+  _rec.onresult=e=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)finalText+=e.results[i][0].transcript+' ';else interim+=e.results[i][0].transcript;}
+    if(ta){ta.value=finalText+interim;shrinkIfNeeded(ta);}
   };
-
-  _rec.onerror = e => {
-    if(btn) btn.classList.remove('rec');
-    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
-    const errs = {
-      'not-allowed':    '⚠ إذن الميكروفون مرفوض — اسمح له من إعدادات المتصفح',
-      'no-speech':      '⚠ لم يُكتشف كلام — تحدث بصوت أعلى',
-      'network':        '⚠ خطأ في الشبكة أثناء التسجيل',
-      'audio-capture':  '⚠ لا يمكن الوصول للميكروفون — تحقق من الإعدادات',
-      'service-not-allowed': '⚠ خدمة التعرف على الكلام غير مسموحة على هذا الدومين',
-    };
-    toast(errs[e.error] || '⚠ خطأ في التسجيل: '+e.error);
-    _rec=null; _recPid=null;
+  _rec.onerror=e=>{
+    if(btn)btn.classList.remove('rec');
+    if(_recStream){_recStream.getTracks().forEach(t=>t.stop());_recStream=null;}
+    const errs={'not-allowed':'⚠ إذن الميكروفون مرفوض','no-speech':'⚠ لم يُكتشف كلام','network':'⚠ خطأ في الشبكة','audio-capture':'⚠ تعذر الوصول للميكروفون','service-not-allowed':'⚠ الخدمة غير مسموحة على هذا الدومين'};
+    toast(errs[e.error]||'⚠ خطأ: '+e.error);_rec=null;_recPid=null;
   };
-
-  _rec.onend = () => {
-    if(btn) btn.classList.remove('rec');
-    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
-    if(ta) UF(pid, 'note', ta.value);
-    _rec=null; _recPid=null;
-    toast('✅ انتهى التسجيل');
+  _rec.onend=()=>{
+    if(btn)btn.classList.remove('rec');
+    if(_recStream){_recStream.getTracks().forEach(t=>t.stop());_recStream=null;}
+    if(ta)UF(pid,'note',ta.value);
+    _rec=null;_recPid=null;toast('✅ انتهى التسجيل');
   };
-
-  try{
-    _rec.start();
-  } catch(e){
-    if(btn) btn.classList.remove('rec');
-    toast('⚠ تعذر بدء التسجيل: '+e.message);
-    _rec=null; _recPid=null;
-  }
+  try{_rec.start();}catch(e){if(btn)btn.classList.remove('rec');toast('⚠ تعذر بدء التسجيل: '+e.message);_rec=null;_recPid=null;}
 }
 
-/* Settings */
-function applyLogoHeight(h){
-  document.documentElement.style.setProperty('--logo-h',(parseInt(h)||160)+'px');
-  S.logoH=parseInt(h)||160;
+/* ================================================================
+   SETTINGS
+================================================================ */
+function toggleTsOptions(){
+  const en=document.getElementById('s-ts-enable');
+  if(en)document.getElementById('ts-options').style.display=en.checked?'flex':'none';
 }
+function applyLogoHeight(h){document.documentElement.style.setProperty('--logo-h',(parseInt(h)||160)+'px');S.logoH=parseInt(h)||160;}
 function saveGeneral(){
-  S.company=document.getElementById('s-company').value;
-  S.site=document.getElementById('s-site').value;
-  S.mgr=document.getElementById('s-mgr').value;
-  S.eng=document.getElementById('s-eng').value;
+  S.company=document.getElementById('s-company').value;S.site=document.getElementById('s-site').value;
+  S.mgr=document.getElementById('s-mgr').value;S.eng=document.getElementById('s-eng').value;
   S.logoH=parseInt(document.getElementById('s-logo-h')?.value||160);
   document.getElementById('cv-company-name').textContent=S.company||'Company Name';
   applyLogoHeight(S.logoH);updateLogoDisplay();saveAll();toast('Saved ✓');
+}
+function saveImgSettings(){
+  S.imgW    =parseInt(document.getElementById('s-imgw').value)||1080;
+  S.imgH    =parseInt(document.getElementById('s-imgh').value)||720;
+  S.imgFit  =document.getElementById('s-imgfit').value;
+  S.imgQuality=parseFloat(document.getElementById('s-quality').value)||0.85;
+  S.tsEnable=document.getElementById('s-ts-enable').checked;
+  S.tsPos   =document.getElementById('s-ts-pos').value;
+  S.tsSize  =parseInt(document.getElementById('s-ts-size').value)||24;
+  S.tsColor =document.getElementById('s-ts-color').value;
+  S.tsBg    =document.getElementById('s-ts-bg').value;
+  S.tsAlpha =parseInt(document.getElementById('s-ts-alpha').value)||65;
+  S.tsFmt   =document.getElementById('s-ts-fmt').value;
+  CV('--img-fit',S.imgFit);
+  document.getElementById('ts-options').style.display=S.tsEnable?'flex':'none';
+  saveAll();
 }
 function bootSettingsUI(){syncSettingsUI();}
 function syncSettingsUI(){
@@ -1519,128 +1460,57 @@ function syncSettingsUI(){
   if(g('s-quality')){g('s-quality').value=q;g('rv-q').textContent=Math.round(q*100)+'%';}
   const lh=S.logoH||160;const lEl=g('s-logo-h');
   if(lEl){lEl.value=lh;g('rv-logo-h').textContent=lh+'px';}
+  /* Timestamp settings */
+  if(g('s-ts-enable')){g('s-ts-enable').checked=!!S.tsEnable;g('ts-options').style.display=S.tsEnable?'flex':'none';}
+  if(g('s-ts-pos')  &&S.tsPos)  g('s-ts-pos').value  =S.tsPos;
+  if(g('s-ts-size') &&S.tsSize) {g('s-ts-size').value=S.tsSize;g('rv-ts').textContent=S.tsSize+'px';}
+  if(g('s-ts-color')&&S.tsColor)g('s-ts-color').value=S.tsColor;
+  if(g('s-ts-bg')   &&S.tsBg)   g('s-ts-bg').value   =S.tsBg;
+  if(g('s-ts-alpha')&&S.tsAlpha){g('s-ts-alpha').value=S.tsAlpha;g('rv-alpha').textContent=S.tsAlpha+'%';}
+  if(g('s-ts-fmt')  &&S.tsFmt)  g('s-ts-fmt').value  =S.tsFmt;
   applyLogoHeight(lh);updateLogoDisplay();
   renderRtypesList();
   renderLI('responsible','resp-list');renderLI('hazard','haz-list');renderLI('risk','risk-list');
 }
 function renderRtypesList(){
   const c=document.getElementById('rtypes-list');if(!c)return;c.innerHTML='';
-  S.reportTypes.forEach((rt,i)=>{
-    const d=document.createElement('div');d.className='li-item';
-    d.innerHTML='<span>'+rt+'</span><button onclick="removeRT('+i+')">✕</button>';c.appendChild(d);
-  });
+  S.reportTypes.forEach((rt,i)=>{const d=document.createElement('div');d.className='li-item';d.innerHTML='<span>'+rt+'</span><button onclick="removeRT('+i+')">✕</button>';c.appendChild(d);});
 }
-function addReportType(){
-  const inp=document.getElementById('new-rtype');const v=inp.value.trim();if(!v)return;
-  S.reportTypes.push(v);inp.value='';renderRtypesList();renderRtypeBtns();saveAll();toast('Added ✓');
-}
+function addReportType(){const inp=document.getElementById('new-rtype');const v=inp.value.trim();if(!v)return;S.reportTypes.push(v);inp.value='';renderRtypesList();renderRtypeBtns();saveAll();toast('Added ✓');}
 function removeRT(i){S.reportTypes.splice(i,1);renderRtypesList();renderRtypeBtns();saveAll();}
 function renderLI(key,cid){
   const c=document.getElementById(cid);if(!c)return;c.innerHTML='';
-  S[key].forEach((v,i)=>{
-    const d=document.createElement('div');d.className='li-item';
-    d.innerHTML='<span>'+v+'</span><button onclick="removeLI(\''+key+'\','+i+',\''+cid+'\')">✕</button>';
-    c.appendChild(d);
-  });
+  S[key].forEach((v,i)=>{const d=document.createElement('div');d.className='li-item';d.innerHTML='<span>'+v+'</span><button onclick="removeLI(\''+key+'\','+i+',\''+cid+'\')">✕</button>';c.appendChild(d);});
 }
-function addLI(key,inpId,cid){
-  const inp=document.getElementById(inpId);const v=inp.value.trim();if(!v)return;
-  S[key].push(v);inp.value='';renderLI(key,cid);saveAll();toast('Added ✓');
-}
+function addLI(key,inpId,cid){const inp=document.getElementById(inpId);const v=inp.value.trim();if(!v)return;S[key].push(v);inp.value='';renderLI(key,cid);saveAll();toast('Added ✓');}
 function removeLI(key,i,cid){S[key].splice(i,1);renderLI(key,cid);saveAll();}
-function saveImgSettings(){
-  S.imgW    = parseInt(document.getElementById('s-imgw').value)||1080;
-  S.imgH    = parseInt(document.getElementById('s-imgh').value)||720;
-  S.imgFit  = document.getElementById('s-imgfit').value;
-  S.imgQuality = parseFloat(document.getElementById('s-quality').value)||0.85;
-  S.tsEnable= document.getElementById('s-ts-enable').checked;
-  S.tsPos   = document.getElementById('s-ts-pos').value;
-  S.tsSize  = parseInt(document.getElementById('s-ts-size').value)||22;
-  S.tsColor = document.getElementById('s-ts-color').value;
-  S.tsBg    = document.getElementById('s-ts-bg').value;
-  S.tsFmt   = document.getElementById('s-ts-fmt').value;
-  CV('--img-fit',S.imgFit);
-  document.getElementById('ts-options').style.display = S.tsEnable?'flex':'none';
-  saveAll();
-}
-
-/* ── Stamp timestamp onto canvas image ── */
-function stampImage(canvas, captureTime){
-  if(!S.tsEnable) return;
-  const ctx  = canvas.getContext('2d');
-  const fs   = S.tsSize  || 22;
-  const col  = S.tsColor || '#ffffff';
-  const bg   = S.tsBg    || '#000000';
-  const pos  = S.tsPos   || 'bottom-right';
-  const fmt  = S.tsFmt   || 'datetime';
-  const W    = canvas.width, H = canvas.height;
-
-  const d = captureTime || new Date();
-  let txt = '';
-  if(fmt==='datetime'){
-    txt = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
-        +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
-  } else if(fmt==='date'){
-    txt = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  } else if(fmt==='time'){
-    txt = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
-  } else if(fmt==='arabic'){
-    txt = d.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  }
-
-  ctx.font = 'bold '+fs+'px Segoe UI, Arial, sans-serif';
-  const tw = ctx.measureText(txt).width;
-  const pad = 8, margin = 12;
-  const bw = tw + pad*2, bh = fs + pad*2;
-
-  let bx, by;
-  if(pos==='bottom-right'){ bx=W-bw-margin;   by=H-bh-margin; }
-  else if(pos==='bottom-left'){ bx=margin;     by=H-bh-margin; }
-  else if(pos==='top-right'){ bx=W-bw-margin;  by=margin; }
-  else { bx=margin; by=margin; }
-
-  // semi-transparent background
-  ctx.globalAlpha=0.72;
-  ctx.fillStyle=bg;
-  ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
-  ctx.globalAlpha=1;
-  ctx.fillStyle=col;
-  ctx.fillText(txt, bx+pad, by+pad+fs*0.82);
-}
 const CMAP=[
   ['d-hdr-bg','--hdr-bg'],['d-hdr-txt','--hdr-txt'],['d-cvr-bg','--cover-bg'],['d-pg-bg','--page-bg'],
   ['d-rh-bg','--risk-high-bg'],['d-rh-brd','--risk-high-border'],['d-rm-bg','--risk-med-bg'],['d-rm-brd','--risk-med-border'],
   ['d-rl-bg','--risk-low-bg'],['d-rl-brd','--risk-low-border'],['d-lbl-bg','--lbl-bg'],['d-lbl-txt','--lbl-txt'],
   ['d-val-bg','--val-bg'],['d-val-txt','--val-txt'],['d-note-bg','--note-bg'],['d-note-brd','--note-border'],
-  ['d-note-txt','--note-txt'],['d-sp-bg','--sp-bg'],['d-sp-lbl-bg','--sp-lbl-bg'],
-  ['d-sp-val-bg','--sp-val-bg'],['d-sp-val-txt','--sp-val-txt'],
+  ['d-note-txt','--note-txt'],['d-sp-bg','--sp-bg'],['d-sp-lbl-bg','--sp-lbl-bg'],['d-sp-val-bg','--sp-val-bg'],['d-sp-val-txt','--sp-val-txt'],
 ];
 function CV(n,v){document.documentElement.style.setProperty(n,v);}
 function applyDesign(){
   if(!S.design)return;
-  Object.entries(S.design).forEach(([k,v])=>{
-    CV(k,v);const e=CMAP.find(m=>m[1]===k);if(e){const el=document.getElementById(e[0]);if(el)el.value=v;}
-  });
+  Object.entries(S.design).forEach(([k,v])=>{CV(k,v);const e=CMAP.find(m=>m[1]===k);if(e){const el=document.getElementById(e[0]);if(el)el.value=v;}});
   if(S.imgFit)CV('--img-fit',S.imgFit);
 }
 function saveDesign(){
   S.design={};
   CMAP.forEach(([id,vn])=>{const el=document.getElementById(id);if(el){S.design[vn]=el.value;CV(vn,el.value);}});
-  ['r-lbl','--fn-lbl','r-note','--fn-note','r-sp','--fn-sp-val','r-noteh','--note-h'].reduce((acc,v,i,a)=>{
-    if(i%2===0){const el=document.getElementById(v);if(el){S.design[a[i+1]]=el.value+'px';CV(a[i+1],el.value+'px');}}
-    return acc;
-  },[]);
+  [['r-lbl','--fn-lbl'],['r-note','--fn-note'],['r-sp','--fn-sp-val'],['r-noteh','--note-h']].forEach(([id,vn])=>{
+    const el=document.getElementById(id);if(el){S.design[vn]=el.value+'px';CV(vn,el.value+'px');}
+  });
   saveAll();refitAllNotes();
 }
 
 function exportPDF(){
   flushNotes();
   S.pages.forEach(p=>{const c=document.getElementById('dc-'+p.id);if(c){c.style.display='block';p.drawing=c.toDataURL();}});
-  SC('name',document.getElementById('cv-name').value);
-  SC('date',document.getElementById('cv-date').value);
-  SC('section',document.getElementById('cv-section').value);
-  SC('time',document.getElementById('cv-time').value);
-  SC('area',document.getElementById('cv-area').value);
+  SC('name',document.getElementById('cv-name').value);SC('date',document.getElementById('cv-date').value);
+  SC('section',document.getElementById('cv-section').value);SC('time',document.getElementById('cv-time').value);SC('area',document.getElementById('cv-area').value);
   saveAll();
   const views=document.querySelectorAll('.view'),prev=[];
   views.forEach(v=>{prev.push(v.style.display);v.style.display='block';});
@@ -1649,34 +1519,16 @@ function exportPDF(){
   setTimeout(()=>{window.print();setTimeout(()=>{views.forEach((v,i)=>v.style.display=prev[i]);},800);},380);
 }
 
-function openModal(title,body,onOk){
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-body').textContent=body;
-  document.getElementById('modal-ok').onclick=onOk;
-  document.getElementById('modal').classList.add('open');
-}
+function openModal(title,body,onOk){document.getElementById('modal-title').textContent=title;document.getElementById('modal-body').textContent=body;document.getElementById('modal-ok').onclick=onOk;document.getElementById('modal').classList.add('open');}
 function closeModal(){document.getElementById('modal').classList.remove('open');}
-function toast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);
-}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
 
 function applyMobileScale(){
   const vw=window.innerWidth,DW=1346,DH=748;
-  if(vw>=DW+20){
-    document.querySelectorAll('.cover-page,.rp').forEach(el=>{el.style.transform='';el.style.width='';el.style.height='';el.style.marginBottom='';});
-    const cvv=document.getElementById('cover-view');if(cvv)cvv.style.height='';return;
-  }
+  if(vw>=DW+20){document.querySelectorAll('.cover-page,.rp').forEach(el=>{el.style.transform='';el.style.width='';el.style.height='';el.style.marginBottom='';});const cvv=document.getElementById('cover-view');if(cvv)cvv.style.height='';return;}
   const scale=Math.min(1,vw/DW),scaledH=Math.round(DH*scale);
-  document.querySelectorAll('.cover-page').forEach(el=>{
-    el.style.width=DW+'px';el.style.height=DH+'px';el.style.minHeight=DH+'px';
-    el.style.transform='scale('+scale+')';el.style.marginBottom=(scaledH-DH)+'px';
-  });
-  document.querySelectorAll('.rp').forEach(el=>{
-    el.style.width=DW+'px';el.style.height=DH+'px';el.style.minHeight=DH+'px';
-    el.style.transform='scale('+scale+')';el.style.marginLeft='0';
-    el.style.marginBottom=(scaledH-DH+20)+'px';
-  });
+  document.querySelectorAll('.cover-page').forEach(el=>{el.style.width=DW+'px';el.style.height=DH+'px';el.style.minHeight=DH+'px';el.style.transform='scale('+scale+')';el.style.marginBottom=(scaledH-DH)+'px';});
+  document.querySelectorAll('.rp').forEach(el=>{el.style.width=DW+'px';el.style.height=DH+'px';el.style.minHeight=DH+'px';el.style.transform='scale('+scale+')';el.style.marginLeft='0';el.style.marginBottom=(scaledH-DH+20)+'px';});
   const cvv=document.getElementById('cover-view');if(cvv)cvv.style.height=(scaledH+20)+'px';
 }
 window.addEventListener('resize',applyMobileScale);
@@ -1684,37 +1536,16 @@ window.addEventListener('orientationchange',()=>setTimeout(applyMobileScale,350)
 
 let _camPid=null;
 function closeCamModal(){document.getElementById('cam-modal').classList.remove('open');_camPid=null;}
-function camChoice(type){
-  const pid=_camPid;closeCamModal();if(!pid)return;
-  const inp=type==='camera'?document.getElementById('g-camera'):document.getElementById('g-gallery');
-  inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
-}
+function camChoice(type){const pid=_camPid;closeCamModal();if(!pid)return;const inp=type==='camera'?document.getElementById('g-camera'):document.getElementById('g-gallery');inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();}
 
-/* ================================================================
-   AUTH UI
-================================================================ */
-function showAuthScreen(){
-  document.getElementById('auth-screen').classList.add('active');
-  document.getElementById('topnav').style.display='none';
-  document.getElementById('main').style.display='none';
-}
-function hideAuthScreen(){
-  document.getElementById('auth-screen').classList.remove('active');
-  document.getElementById('topnav').style.display='';
-  document.getElementById('main').style.display='';
-}
+/* AUTH UI */
+function showAuthScreen(){document.getElementById('auth-screen').classList.add('active');document.getElementById('topnav').style.display='none';document.getElementById('main').style.display='none';}
+function hideAuthScreen(){document.getElementById('auth-screen').classList.remove('active');document.getElementById('topnav').style.display='';document.getElementById('main').style.display='';}
 function authTab(tab){
-  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('ap-'+tab).classList.add('active');
-  const tabs=document.querySelectorAll('.auth-tab');
-  if(tab==='login')tabs[0].classList.add('active');else tabs[1].classList.add('active');
-  setAuthMsg('');
+  document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.auth-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ap-'+tab).classList.add('active');const tabs=document.querySelectorAll('.auth-tab');if(tab==='login')tabs[0].classList.add('active');else tabs[1].classList.add('active');setAuthMsg('');
 }
-function setAuthMsg(msg,ok=false){
-  const el=document.getElementById('auth-msg');if(!el)return;
-  el.textContent=msg;el.className='auth-msg'+(ok?' ok':msg?' err':'');el.style.display=msg?'block':'none';
-}
+function setAuthMsg(msg,ok=false){const el=document.getElementById('auth-msg');if(!el)return;el.textContent=msg;el.className='auth-msg'+(ok?' ok':msg?' err':'');el.style.display=msg?'block':'none';}
 function doAuthLogin(){
   const username=(document.getElementById('li-user').value||'').trim().toLowerCase();
   const password=(document.getElementById('li-pass').value||'');
@@ -1744,157 +1575,84 @@ function doAuthRegister(){
   setTimeout(()=>{authTab('login');document.getElementById('li-user').value=username;},1200);
 }
 function authLogout(){
-  clearSession();currentUser=null;SaveMgr.stopListening();
-  S=JSON.parse(JSON.stringify(DEF));
-  showAuthScreen();toast('Logged out successfully');
+  clearSession();currentUser=null;SaveMgr.stopListening();S=JSON.parse(JSON.stringify(DEF));showAuthScreen();toast('Logged out successfully');
 }
 function checkAutoLogin(){
-  const params=new URLSearchParams(window.location.search);
-  const token=params.get('autologin');if(!token)return false;
+  const params=new URLSearchParams(window.location.search);const token=params.get('autologin');if(!token)return false;
   try{
-    const{u:username,p:password}=JSON.parse(atob(decodeURIComponent(token)));
-    if(!username||!password)return false;
+    const{u:username,p:password}=JSON.parse(atob(decodeURIComponent(token)));if(!username||!password)return false;
     window.history.replaceState({},'',window.location.pathname);
     let user=AUTH.users.find(u=>u.username===username);
-    if(!user){
-      user={username,password:hashPassword(password),role:'user',created_at:Date.now()};
-      AUTH.users.push(user);saveAuthDB(AUTH);
-    }
-    if(user.password===hashPassword(password)){
-      setSession(user);currentUser={name:user.username,role:user.role};bootApp();return true;
-    }
+    if(!user){user={username,password:hashPassword(password),role:'user',created_at:Date.now()};AUTH.users.push(user);saveAuthDB(AUTH);}
+    if(user.password===hashPassword(password)){setSession(user);currentUser={name:user.username,role:user.role};bootApp();return true;}
   }catch(e){console.warn('Auto-login error',e);}
   return false;
 }
-
 function injectNavButtons(){
-  /* فقط زرار Logout — زرار Account/Admin موجود داخل Settings → Account */
   const navRight=document.querySelector('.nav-right');
   if(!navRight||document.getElementById('logout-nav-btn'))return;
-  const lb=document.createElement('button');
-  lb.id='logout-nav-btn';lb.className='nbtn';
-  lb.innerHTML='🚪 Logout';
-  lb.style.background='rgba(192,57,43,.85)';
-  lb.onclick=authLogout;
-  navRight.appendChild(lb);
+  const lb=document.createElement('button');lb.id='logout-nav-btn';lb.className='nbtn';lb.innerHTML='🚪 Logout';lb.style.background='rgba(192,57,43,.85)';lb.onclick=authLogout;navRight.appendChild(lb);
 }
 
-/* ================================================================
-   ACCOUNT / ADMIN (sp4)
-   ✅ كل دالة تبدأ بـ AUTH=loadAuthDB() لضمان عدم فقدان المستخدمين
-================================================================ */
+/* ACCOUNT / ADMIN sp4 */
 let adminEditTarget=null,_lastCreatedUser=null;
-
 function refreshSP4(){
   if(!isLoggedIn())return;
-  /* ✅ FIX 3 — إعادة تحميل AUTH عند فتح تاب Account */
-  AUTH=loadAuthDB();
+  AUTH=loadAuthDB(); /* ✅ FIX 3 */
   const session=getSession();
   const unEl=document.getElementById('sp4-username'),roleEl=document.getElementById('sp4-role-badge');
   if(unEl)unEl.textContent=session.username;
   if(roleEl){roleEl.textContent=session.role;roleEl.style.background=session.role==='admin'?'#7d3c98':'#1a3a5c';}
-  const adminSec=document.getElementById('sp4-admin-section');
-  if(adminSec)adminSec.style.display=isAdmin()?'flex':'none';
+  const adminSec=document.getElementById('sp4-admin-section');if(adminSec)adminSec.style.display=isAdmin()?'flex':'none';
   if(isAdmin()){renderAdminCodes();renderAdminUsersList();}
 }
-
 function sp4ChangePassword(){
-  const old=document.getElementById('sp4-old-pw').value;
-  const nw =document.getElementById('sp4-new-pw').value;
-  const nw2=document.getElementById('sp4-new-pw2').value;
+  const old=document.getElementById('sp4-old-pw').value,nw=document.getElementById('sp4-new-pw').value,nw2=document.getElementById('sp4-new-pw2').value;
   const msgEl=document.getElementById('sp4-pw-msg');
-  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.display='block';setTimeout(()=>msgEl.style.display='none',3000);};
-  if(!old||!nw||!nw2){showMsg('⚠ Fill in all fields');return;}
-  if(nw!==nw2){showMsg('⚠ Passwords do not match');return;}
-  const session=getSession();if(!session){showMsg('⚠ Not logged in');return;}
-  AUTH=loadAuthDB();
+  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.background=ok?'#e8f8ee':'#ffeaea';msgEl.style.display='block';setTimeout(()=>msgEl.style.display='none',3000);};
+  if(!old||!nw||!nw2){showMsg('⚠ Fill in all fields');return;}if(nw!==nw2){showMsg('⚠ Passwords do not match');return;}
+  AUTH=loadAuthDB();const session=getSession();if(!session){showMsg('⚠ Not logged in');return;}
   const user=AUTH.users.find(u=>u.username===session.username);if(!user){showMsg('⚠ User not found');return;}
   if(user.password!==hashPassword(old)){showMsg('⚠ Current password is wrong');return;}
   user.password=hashPassword(nw);saveAuthDB(AUTH);
-  document.getElementById('sp4-old-pw').value='';
-  document.getElementById('sp4-new-pw').value='';
-  document.getElementById('sp4-new-pw2').value='';
+  document.getElementById('sp4-old-pw').value='';document.getElementById('sp4-new-pw').value='';document.getElementById('sp4-new-pw2').value='';
   showMsg('✓ Password changed successfully',true);
 }
-
 function renderAdminUsersList(){
-  /* ✅ FIX — دائماً اقرأ AUTH الحديث قبل رسم القائمة */
-  AUTH=loadAuthDB();
+  AUTH=loadAuthDB(); /* ✅ FIX */
   const c=document.getElementById('admin-users-list');if(!c)return;c.innerHTML='';
   AUTH.users.forEach((u,i)=>{
-    const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f5f8fb;border:1px solid #dde6ef;border-radius:6px';
-    row.innerHTML=
-      '<span style="flex:1;font-weight:700;font-size:13px">'+(u.role==='admin'?'👑':'👤')+' '+u.username+'</span>'+
-      '<span style="background:'+(u.role==='admin'?'#7d3c98':'#1a3a5c')+';color:#fff;font-size:10px;padding:2px 7px;border-radius:3px">'+u.role+'</span>'+
-      '<button onclick="adminEditUser('+i+')" style="background:#2d5a8e;color:#fff;border:none;border-radius:3px;padding:3px 10px;cursor:pointer;font-size:12px">✏️ Edit</button>';
+    const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 10px;background:#f5f8fb;border:1px solid #dde6ef;border-radius:6px';
+    row.innerHTML='<span style="flex:1;font-weight:700;font-size:13px">'+(u.role==='admin'?'👑':'👤')+' '+u.username+'</span><span style="background:'+(u.role==='admin'?'#7d3c98':'#1a3a5c')+';color:#fff;font-size:10px;padding:2px 7px;border-radius:3px">'+u.role+'</span><button onclick="adminEditUser('+i+')" style="background:#2d5a8e;color:#fff;border:none;border-radius:3px;padding:3px 10px;cursor:pointer;font-size:12px">✏️ Edit</button>';
     c.appendChild(row);
   });
   if(!AUTH.users.length)c.innerHTML='<div style="color:#aaa;font-size:12px;padding:8px">No users yet.</div>';
 }
-
-function adminEditUser(i){
-  AUTH=loadAuthDB();
-  const user=AUTH.users[i];if(!user)return;
-  adminEditTarget=i;
-  document.getElementById('eu-username').value=user.username;
-  document.getElementById('eu-password').value='';
-  document.getElementById('sp4-edit-user-form').style.display='flex';
-  document.getElementById('sp4-edit-msg').style.display='none';
-}
+function adminEditUser(i){AUTH=loadAuthDB();const user=AUTH.users[i];if(!user)return;adminEditTarget=i;document.getElementById('eu-username').value=user.username;document.getElementById('eu-password').value='';document.getElementById('sp4-edit-user-form').style.display='flex';document.getElementById('sp4-edit-msg').style.display='none';}
 function adminCancelEdit(){adminEditTarget=null;document.getElementById('sp4-edit-user-form').style.display='none';}
 function adminSaveUser(){
-  if(adminEditTarget===null)return;
-  AUTH=loadAuthDB();
-  const user=AUTH.users[adminEditTarget];if(!user)return;
-  const newU=(document.getElementById('eu-username').value||'').trim().toLowerCase();
-  const newPw=(document.getElementById('eu-password').value||'').trim();
-  const msgEl=document.getElementById('sp4-edit-msg');
-  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.display='block';};
-  if(newU&&newU!==user.username){
-    if(AUTH.users.find((u,i)=>u.username===newU&&i!==adminEditTarget)){showMsg('⚠ Username taken');return;}
-    user.username=newU;
-  }
+  if(adminEditTarget===null)return;AUTH=loadAuthDB();const user=AUTH.users[adminEditTarget];if(!user)return;
+  const newU=(document.getElementById('eu-username').value||'').trim().toLowerCase();const newPw=(document.getElementById('eu-password').value||'').trim();
+  const msgEl=document.getElementById('sp4-edit-msg');const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.background=ok?'#e8f8ee':'#ffeaea';msgEl.style.display='block';};
+  if(newU&&newU!==user.username){if(AUTH.users.find((u,i)=>u.username===newU&&i!==adminEditTarget)){showMsg('⚠ Username taken');return;}user.username=newU;}
   if(newPw)user.password=hashPassword(newPw);
   saveAuthDB(AUTH);renderAdminUsersList();showMsg('✓ Updated',true);setTimeout(()=>adminCancelEdit(),1500);
 }
 function adminDeleteUser(){
-  if(adminEditTarget===null)return;
-  AUTH=loadAuthDB();
-  const user=AUTH.users[adminEditTarget];if(!user)return;
-  if(user.username==='admin'){
-    document.getElementById('sp4-edit-msg').textContent='⚠ Cannot delete admin';
-    document.getElementById('sp4-edit-msg').style.color='#c0392b';
-    document.getElementById('sp4-edit-msg').style.display='block';return;
-  }
-  openModal('Delete User','Delete user "'+user.username+'"?',()=>{
-    AUTH=loadAuthDB();
-    localStorage.removeItem('hse4_u_'+encodeURIComponent(user.username));
-    AUTH.users.splice(adminEditTarget,1);saveAuthDB(AUTH);
-    renderAdminUsersList();adminCancelEdit();closeModal();toast('User deleted');
-  });
+  if(adminEditTarget===null)return;AUTH=loadAuthDB();const user=AUTH.users[adminEditTarget];if(!user)return;
+  if(user.username==='admin'){document.getElementById('sp4-edit-msg').textContent='⚠ Cannot delete admin';document.getElementById('sp4-edit-msg').style.color='#c0392b';document.getElementById('sp4-edit-msg').style.display='block';return;}
+  openModal('Delete User','Delete user "'+user.username+'"?',()=>{AUTH=loadAuthDB();localStorage.removeItem('hse4_u_'+encodeURIComponent(user.username));AUTH.users.splice(adminEditTarget,1);saveAuthDB(AUTH);renderAdminUsersList();adminCancelEdit();closeModal();toast('User deleted');});
 }
 function adminClearUserData(){
-  if(adminEditTarget===null)return;
-  AUTH=loadAuthDB();
-  const user=AUTH.users[adminEditTarget];if(!user)return;
-  openModal('Clear Data','Clear ALL data for "'+user.username+'"?',()=>{
-    localStorage.removeItem('hse4_u_'+encodeURIComponent(user.username));
-    closeModal();toast('Data cleared for '+user.username);
-  });
+  if(adminEditTarget===null)return;AUTH=loadAuthDB();const user=AUTH.users[adminEditTarget];if(!user)return;
+  openModal('Clear Data','Clear ALL data for "'+user.username+'"?',()=>{localStorage.removeItem('hse4_u_'+encodeURIComponent(user.username));closeModal();toast('Data cleared for '+user.username);});
 }
-
 function generateCodes(){
-  AUTH=loadAuthDB();
-  const type=document.getElementById('code-type').value;
-  const qty=Math.min(parseInt(document.getElementById('code-qty').value)||1,10);
-  for(let i=0;i<qty;i++)AUTH.codes.push(genCode(type));
-  saveAuthDB(AUTH);renderAdminCodes();toast('✓ '+qty+' code(s) generated');
+  AUTH=loadAuthDB();const type=document.getElementById('code-type').value;const qty=Math.min(parseInt(document.getElementById('code-qty').value)||1,10);
+  for(let i=0;i<qty;i++)AUTH.codes.push(genCode(type));saveAuthDB(AUTH);renderAdminCodes();toast('✓ '+qty+' code(s) generated');
 }
 function renderAdminCodes(){
-  AUTH=loadAuthDB();
-  const grid=document.getElementById('codes-grid');if(!grid)return;grid.innerHTML='';
-  const now=Date.now();
+  AUTH=loadAuthDB();const grid=document.getElementById('codes-grid');if(!grid)return;grid.innerHTML='';const now=Date.now();
   const sorted=[...AUTH.codes].sort((a,b)=>{if(a.is_used&&!b.is_used)return 1;if(!a.is_used&&b.is_used)return-1;return b.created_at-a.created_at;});
   sorted.forEach(c=>{
     const isExpired=c.type==='temporary'&&c.expires_at&&now>c.expires_at&&!c.is_used;
@@ -1906,102 +1664,48 @@ function renderAdminCodes(){
   });
   if(!sorted.length)grid.innerHTML='<div style="color:#aaa;font-size:13px;padding:8px">No codes yet.</div>';
 }
-
-function auGenPassword(){
-  const ch='abcdefghjkmnpqrstuvwxyz23456789';let pw='';
-  for(let i=0;i<8;i++)pw+=ch[Math.floor(Math.random()*ch.length)];
-  document.getElementById('au-password').value=pw;
-}
+function auGenPassword(){const ch='abcdefghjkmnpqrstuvwxyz23456789';let pw='';for(let i=0;i<8;i++)pw+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('au-password').value=pw;}
 function adminAddUser(){
-  /* ✅ FIX 4 — تحميل AUTH الحديث قبل إضافة مستخدم جديد */
-  AUTH=loadAuthDB();
+  AUTH=loadAuthDB(); /* ✅ FIX 4 */
   const username=(document.getElementById('au-username').value||'').trim().toLowerCase();
   const password=(document.getElementById('au-password').value||'').trim();
   const msgEl=document.getElementById('au-msg');
-  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.display='block';if(ok)setTimeout(()=>msgEl.style.display='none',4000);};
-  if(!username){showMsg('⚠ Enter a username');return;}
-  if(!password){showMsg('⚠ Enter a password');return;}
+  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.style.color=ok?'#1a7a3c':'#c0392b';msgEl.style.background=ok?'#e8f8ee':'#ffeaea';msgEl.style.display='block';if(ok)setTimeout(()=>msgEl.style.display='none',4000);};
+  if(!username){showMsg('⚠ Enter a username');return;}if(!password){showMsg('⚠ Enter a password');return;}
   if(AUTH.users.find(u=>u.username===username)){showMsg('⚠ Username "'+username+'" already exists');return;}
   AUTH.users.push({username,password:hashPassword(password),role:'user',created_at:Date.now()});
   saveAuthDB(AUTH);_lastCreatedUser={username,password};
   const shareLink=buildShareLink(username,password);
-  document.getElementById('au-show-user').textContent=username;
-  document.getElementById('au-show-pass').textContent=password;
-  document.getElementById('au-link-box').textContent=shareLink;
-  document.getElementById('au-share-box').style.display='block';
-  renderAdminUsersList();showMsg('✓ User "'+username+'" created!',true);
+  document.getElementById('au-show-user').textContent=username;document.getElementById('au-show-pass').textContent=password;document.getElementById('au-link-box').textContent=shareLink;
+  document.getElementById('au-share-box').style.display='block';renderAdminUsersList();showMsg('✓ User "'+username+'" created!',true);
 }
-function buildShareLink(u,p){
-  const base=window.location.href.split('#')[0].split('?')[0];
-  return base+'?autologin='+encodeURIComponent(btoa(JSON.stringify({u,p})));
-}
-function adminClearAddForm(){
-  document.getElementById('au-username').value='';document.getElementById('au-password').value='';
-  document.getElementById('au-share-box').style.display='none';document.getElementById('au-msg').style.display='none';
-  _lastCreatedUser=null;
-}
-function getShareMsg(){
-  if(!_lastCreatedUser)return'';
-  const link=document.getElementById('au-link-box').textContent;
-  return'🛡️ HSE Walkthrough Inspection\n\nYou\'ve been added!\n\n👤 Username: '+_lastCreatedUser.username+'\n🔒 Password: '+_lastCreatedUser.password+'\n\n🔗 Click to login:\n'+link;
-}
+function buildShareLink(u,p){const base=window.location.href.split('#')[0].split('?')[0];return base+'?autologin='+encodeURIComponent(btoa(JSON.stringify({u,p})));}
+function adminClearAddForm(){document.getElementById('au-username').value='';document.getElementById('au-password').value='';document.getElementById('au-share-box').style.display='none';document.getElementById('au-msg').style.display='none';_lastCreatedUser=null;}
+function getShareMsg(){if(!_lastCreatedUser)return'';const link=document.getElementById('au-link-box').textContent;return'🛡️ HSE Walkthrough Inspection\n\nYou\'ve been added!\n\n👤 Username: '+_lastCreatedUser.username+'\n🔒 Password: '+_lastCreatedUser.password+'\n\n🔗 Click to login:\n'+link;}
 function shareWhatsApp(){window.open('https://wa.me/?text='+encodeURIComponent(getShareMsg()),'_blank');}
 function shareEmail(){window.location.href='mailto:?subject='+encodeURIComponent('HSE Inspection — Your Login Credentials')+'&body='+encodeURIComponent(getShareMsg());}
-function copyShareLink(){
-  if(navigator.clipboard)navigator.clipboard.writeText(getShareMsg()).then(()=>toast('✓ Copied!'));
-  else{const ta=document.createElement('textarea');ta.value=getShareMsg();document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Copied!');}
-}
-
+function copyShareLink(){if(navigator.clipboard)navigator.clipboard.writeText(getShareMsg()).then(()=>toast('✓ Copied!'));else{const ta=document.createElement('textarea');ta.value=getShareMsg();document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Copied!');}}
 function doChangePassword(){
   const oldPw=document.getElementById('chpw-old').value,newPw=document.getElementById('chpw-new').value,newPw2=document.getElementById('chpw-new2').value;
-  const msgEl=document.getElementById('chpw-msg');
-  const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.className='auth-msg'+(ok?' ok':' err');msgEl.style.display='block';};
-  if(!oldPw||!newPw||!newPw2){showMsg('Fill in all fields');return;}
-  if(newPw.length<6){showMsg('New password must be 6+ characters');return;}
-  if(newPw!==newPw2){showMsg('Passwords do not match');return;}
-  const session=getSession();if(!session){showMsg('Not logged in');return;}
-  AUTH=loadAuthDB();
+  const msgEl=document.getElementById('chpw-msg');const showMsg=(m,ok)=>{msgEl.textContent=m;msgEl.className='auth-msg'+(ok?' ok':' err');msgEl.style.display='block';};
+  if(!oldPw||!newPw||!newPw2){showMsg('Fill in all fields');return;}if(newPw.length<6){showMsg('New password must be 6+ characters');return;}if(newPw!==newPw2){showMsg('Passwords do not match');return;}
+  AUTH=loadAuthDB();const session=getSession();if(!session){showMsg('Not logged in');return;}
   const user=AUTH.users.find(u=>u.username===session.username);if(!user){showMsg('User not found');return;}
   if(user.password!==hashPassword(oldPw)){showMsg('Current password is incorrect');return;}
-  user.password=hashPassword(newPw);saveAuthDB(AUTH);
-  showMsg('✓ Password changed!',true);
-  setTimeout(()=>document.getElementById('chpw-modal').classList.remove('open'),1500);
+  user.password=hashPassword(newPw);saveAuthDB(AUTH);showMsg('✓ Password changed!',true);setTimeout(()=>document.getElementById('chpw-modal').classList.remove('open'),1500);
 }
-
 history.pushState({page:'app'},'');
 window.addEventListener('popstate',()=>{
   history.pushState({page:'app'},'');
   openModal('⬅ Exit App','Save and exit?',()=>{saveAll();closeModal();toast('Saved!');});
   document.getElementById('modal-ok').textContent='💾 Save & Exit';
 });
-
 window.addEventListener('orientationchange',()=>{
-  setTimeout(()=>{
-    refitAllNotes();
-    Object.keys(DS).forEach(pid=>{
-      const canvas=document.getElementById('dc-'+pid),frame=document.getElementById('ifr-'+pid);
-      if(canvas&&frame){
-        const w=frame.offsetWidth,h=frame.offsetHeight;
-        if(w>0&&h>0){
-          const tmp=document.createElement('canvas');tmp.width=canvas.width;tmp.height=canvas.height;
-          if(canvas.width>0)tmp.getContext('2d').drawImage(canvas,0,0);
-          canvas.width=w;canvas.height=h;
-          if(tmp.width>0)canvas.getContext('2d').drawImage(tmp,0,0,w,h);
-        }
-      }
-    });
-  },300);
+  setTimeout(()=>{refitAllNotes();Object.keys(DS).forEach(pid=>{const canvas=document.getElementById('dc-'+pid),frame=document.getElementById('ifr-'+pid);if(canvas&&frame){const w=frame.offsetWidth,h=frame.offsetHeight;if(w>0&&h>0){const tmp=document.createElement('canvas');tmp.width=canvas.width;tmp.height=canvas.height;if(canvas.width>0)tmp.getContext('2d').drawImage(canvas,0,0);canvas.width=w;canvas.height=h;if(tmp.width>0)canvas.getContext('2d').drawImage(tmp,0,0,w,h);}}});},300);
 });
-
 document.addEventListener('click',e=>{
   if(!e.target.closest('.img-frame')&&!e.target.closest('.img-toolbar')){
-    Object.keys(DS).forEach(pid=>{
-      const canvas=document.getElementById('dc-'+pid);
-      if(canvas){canvas.style.pointerEvents='none';canvas.style.cursor='default';}
-      ['pen','highlight','arrow','rect','circle','text','eraser','move'].forEach(t=>{
-        const b=document.getElementById('tb-'+t+'-'+pid);if(b)b.classList.remove('active-tool');
-      });
-    });
+    Object.keys(DS).forEach(pid=>{const canvas=document.getElementById('dc-'+pid);if(canvas){canvas.style.pointerEvents='none';canvas.style.cursor='default';}['pen','highlight','arrow','rect','circle','text','eraser','move'].forEach(t=>{const b=document.getElementById('tb-'+t+'-'+pid);if(b)b.classList.remove('active-tool');});});
   }
 });
 </script>
