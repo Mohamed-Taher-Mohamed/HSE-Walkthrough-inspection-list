@@ -1132,33 +1132,78 @@ function shrinkIfNeeded(ta){
 function fitTA(ta){shrinkIfNeeded(ta);}
 function refitAllNotes(){document.querySelectorAll('.note-ta').forEach(ta=>shrinkIfNeeded(ta));}
 
-function pickImg(pid,cam){
-  const inp=cam?document.getElementById('g-camera'):document.getElementById('g-gallery');
-  inp.value='';inp.onchange=()=>processImg(inp.files[0],pid);inp.click();
+function pickImg(pid, cam){
+  if(cam){
+    // حاول تفتح تطبيق Timestamp Camera الخارجي أولاً
+    // إذا مش مثبت، افتح كاميرا الجهاز العادية
+    const tsApp = document.createElement('a');
+    tsApp.href = 'intent://camera#Intent;scheme=timestampcamera;package=com.jeyluta.timestampcamerafree;end';
+    // نستخدم input كاميرا عادية كـ fallback
+    const inp = document.getElementById('g-camera');
+    inp.value = '';
+    inp.onchange = () => processImg(inp.files[0], pid);
+
+    // على Android حاول فتح التطبيق الخارجي
+    if(/Android/i.test(navigator.userAgent)){
+      // جرب تفتح Timestamp Camera عبر intent
+      const intentUrl = 'intent://open#Intent;package=com.jeyluta.timestampcamerafree;scheme=timestampcamera;end';
+      const iframe = document.createElement('iframe');
+      iframe.style.display='none';
+      document.body.appendChild(iframe);
+      iframe.src = intentUrl;
+      // بعد ثانية، لو مفتحش التطبيق، افتح الكاميرا العادية
+      setTimeout(()=>{
+        document.body.removeChild(iframe);
+        // افتح الكاميرا العادية كـ fallback
+        inp.click();
+      }, 1500);
+      toast('📷 يحاول فتح Timestamp Camera… سيفتح الكاميرا العادية إن لم يكن مثبتاً');
+    } else {
+      // على iOS أو Desktop — افتح الكاميرا العادية مباشرة مع timestamp مدمج
+      inp.click();
+    }
+  } else {
+    const inp = document.getElementById('g-gallery');
+    inp.value = '';
+    inp.onchange = () => processImg(inp.files[0], pid);
+    inp.click();
+  }
 }
-function processImg(file,pid){
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const mw=S.imgW||1080,mh=S.imgH||720;
-      let w=img.width,h=img.height;const sc=Math.min(mw/w,mh/h,1);
-      w=Math.round(w*sc);h=Math.round(h*sc);
-      canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const data=canvas.toDataURL('image/jpeg',S.imgQuality||0.85);
-      const p=GP(pid);if(!p)return;p.img=data;saveAll();
-      const frame=document.getElementById('ifr-'+pid);
+
+function processImg(file, pid){
+  if(!file) return;
+  const captureTime = new Date(); // سجّل وقت التصوير فوراً
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const mw = S.imgW||1080, mh = S.imgH||720;
+      let w = img.width, h = img.height;
+      const sc = Math.min(mw/w, mh/h, 1);
+      w = Math.round(w*sc); h = Math.round(h*sc);
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // ✅ أضف الـ Timestamp على الصورة
+      stampImage(canvas, captureTime);
+      const data = canvas.toDataURL('image/jpeg', S.imgQuality||0.85);
+      const p = GP(pid); if(!p) return;
+      p.img = data; saveAll();
+      const frame = document.getElementById('ifr-'+pid);
       if(frame){
-        const ph=document.getElementById('iph-'+pid);if(ph)ph.remove();
-        let bi=document.getElementById('bimg-'+pid);
-        if(!bi){bi=document.createElement('img');bi.className='base-img';bi.id='bimg-'+pid;
-          bi.alt='obs';bi.style.objectFit=S.imgFit||'cover';frame.insertBefore(bi,frame.firstChild);}
-        bi.src=data;
+        const ph = document.getElementById('iph-'+pid); if(ph) ph.remove();
+        let bi = document.getElementById('bimg-'+pid);
+        if(!bi){
+          bi = document.createElement('img'); bi.className='base-img'; bi.id='bimg-'+pid;
+          bi.alt='obs'; bi.style.objectFit=S.imgFit||'cover';
+          frame.insertBefore(bi, frame.firstChild);
+        }
+        bi.src = data;
       }
-    };img.src=e.target.result;
-  };reader.readAsDataURL(file);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 function clearImg(pid){
   const p=GP(pid);if(!p)return;p.img=null;saveAll();
@@ -1352,32 +1397,98 @@ function restoreDrawing(page){
   img.src=page.drawing;
 }
 
-/* Speech recognition */
-let _rec=null,_recPid=null;
+/* Speech recognition — إصلاح شامل */
+let _rec=null, _recPid=null, _recStream=null;
+
 async function toggleMic(pid){
-  const btn=document.getElementById('mic-'+pid);
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){toast('⚠ Speech not supported. Use Chrome/Edge.');return;}
-  if(_rec&&_recPid===pid){_rec.stop();return;}
-  if(_rec){_rec.stop();_rec=null;_recPid=null;}
-  try{await navigator.mediaDevices.getUserMedia({audio:true});}
-  catch(e){toast('⚠ Microphone permission denied.');return;}
-  const ta=document.getElementById('ta-'+pid);if(ta)ta.focus();
-  _recPid=pid;_rec=new SR();_rec.lang='ar-EG';_rec.continuous=true;_rec.interimResults=true;_rec.maxAlternatives=1;
-  if(btn)btn.classList.add('rec');let finalText='';
-  _rec.onstart=()=>toast('🎤 Recording… tap 🎤 again to stop');
-  _rec.onresult=e=>{
-    let interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)finalText+=e.results[i][0].transcript+' ';
-      else interim+=e.results[i][0].transcript;
+  const btn = document.getElementById('mic-'+pid);
+  const SR  = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SR){
+    toast('⚠ التسجيل الصوتي يحتاج Chrome أو Edge');
+    return;
+  }
+
+  // إيقاف التسجيل الحالي
+  if(_rec && _recPid===pid){
+    _rec.stop();
+    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
+    return;
+  }
+  if(_rec){
+    _rec.abort();
+    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
+    _rec=null; _recPid=null;
+  }
+
+  // اطلب إذن الميكروفون صراحةً
+  try{
+    _recStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    // لا نستخدم الـ stream مباشرة — بس الطلب يضمن الإذن
+  } catch(e){
+    if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
+      toast('⚠ ارفض الميكروفون — اضغط على أيقونة القفل في المتصفح واسمح بالميكروفون');
+    } else if(e.name==='NotFoundError'){
+      toast('⚠ لا يوجد ميكروفون متصل بالجهاز');
+    } else {
+      toast('⚠ خطأ في الميكروفون: '+e.message);
     }
-    if(ta){ta.value=finalText+interim;shrinkIfNeeded(ta);}
+    return;
+  }
+
+  const ta = document.getElementById('ta-'+pid);
+  if(ta) ta.focus();
+
+  _recPid = pid;
+  _rec    = new SR();
+  _rec.lang            = 'ar-EG';
+  _rec.continuous      = true;
+  _rec.interimResults  = true;
+  _rec.maxAlternatives = 1;
+
+  if(btn) btn.classList.add('rec');
+  let finalText = (ta ? ta.value : '');
+
+  _rec.onstart = () => toast('🎤 جارٍ التسجيل… اضغط 🎤 مجدداً للإيقاف');
+
+  _rec.onresult = e => {
+    let interim = '';
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      if(e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    if(ta){ ta.value = finalText + interim; shrinkIfNeeded(ta); }
   };
-  _rec.onerror=e=>{if(btn)btn.classList.remove('rec');toast('🎤 Error: '+e.error);_rec=null;_recPid=null;};
-  _rec.onend=()=>{if(btn)btn.classList.remove('rec');if(ta)UF(pid,'note',ta.value);_rec=null;_recPid=null;};
-  try{_rec.start();}
-  catch(e){if(btn)btn.classList.remove('rec');toast('⚠ Cannot start: '+e.message);_rec=null;_recPid=null;}
+
+  _rec.onerror = e => {
+    if(btn) btn.classList.remove('rec');
+    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
+    const errs = {
+      'not-allowed':    '⚠ إذن الميكروفون مرفوض — اسمح له من إعدادات المتصفح',
+      'no-speech':      '⚠ لم يُكتشف كلام — تحدث بصوت أعلى',
+      'network':        '⚠ خطأ في الشبكة أثناء التسجيل',
+      'audio-capture':  '⚠ لا يمكن الوصول للميكروفون — تحقق من الإعدادات',
+      'service-not-allowed': '⚠ خدمة التعرف على الكلام غير مسموحة على هذا الدومين',
+    };
+    toast(errs[e.error] || '⚠ خطأ في التسجيل: '+e.error);
+    _rec=null; _recPid=null;
+  };
+
+  _rec.onend = () => {
+    if(btn) btn.classList.remove('rec');
+    if(_recStream){ _recStream.getTracks().forEach(t=>t.stop()); _recStream=null; }
+    if(ta) UF(pid, 'note', ta.value);
+    _rec=null; _recPid=null;
+    toast('✅ انتهى التسجيل');
+  };
+
+  try{
+    _rec.start();
+  } catch(e){
+    if(btn) btn.classList.remove('rec');
+    toast('⚠ تعذر بدء التسجيل: '+e.message);
+    _rec=null; _recPid=null;
+  }
 }
 
 /* Settings */
@@ -1438,11 +1549,63 @@ function addLI(key,inpId,cid){
 }
 function removeLI(key,i,cid){S[key].splice(i,1);renderLI(key,cid);saveAll();}
 function saveImgSettings(){
-  S.imgW=parseInt(document.getElementById('s-imgw').value)||1080;
-  S.imgH=parseInt(document.getElementById('s-imgh').value)||720;
-  S.imgFit=document.getElementById('s-imgfit').value;
-  S.imgQuality=parseFloat(document.getElementById('s-quality').value)||0.85;
-  CV('--img-fit',S.imgFit);saveAll();
+  S.imgW    = parseInt(document.getElementById('s-imgw').value)||1080;
+  S.imgH    = parseInt(document.getElementById('s-imgh').value)||720;
+  S.imgFit  = document.getElementById('s-imgfit').value;
+  S.imgQuality = parseFloat(document.getElementById('s-quality').value)||0.85;
+  S.tsEnable= document.getElementById('s-ts-enable').checked;
+  S.tsPos   = document.getElementById('s-ts-pos').value;
+  S.tsSize  = parseInt(document.getElementById('s-ts-size').value)||22;
+  S.tsColor = document.getElementById('s-ts-color').value;
+  S.tsBg    = document.getElementById('s-ts-bg').value;
+  S.tsFmt   = document.getElementById('s-ts-fmt').value;
+  CV('--img-fit',S.imgFit);
+  document.getElementById('ts-options').style.display = S.tsEnable?'flex':'none';
+  saveAll();
+}
+
+/* ── Stamp timestamp onto canvas image ── */
+function stampImage(canvas, captureTime){
+  if(!S.tsEnable) return;
+  const ctx  = canvas.getContext('2d');
+  const fs   = S.tsSize  || 22;
+  const col  = S.tsColor || '#ffffff';
+  const bg   = S.tsBg    || '#000000';
+  const pos  = S.tsPos   || 'bottom-right';
+  const fmt  = S.tsFmt   || 'datetime';
+  const W    = canvas.width, H = canvas.height;
+
+  const d = captureTime || new Date();
+  let txt = '';
+  if(fmt==='datetime'){
+    txt = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+        +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  } else if(fmt==='date'){
+    txt = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  } else if(fmt==='time'){
+    txt = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+  } else if(fmt==='arabic'){
+    txt = d.toLocaleDateString('ar-EG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  }
+
+  ctx.font = 'bold '+fs+'px Segoe UI, Arial, sans-serif';
+  const tw = ctx.measureText(txt).width;
+  const pad = 8, margin = 12;
+  const bw = tw + pad*2, bh = fs + pad*2;
+
+  let bx, by;
+  if(pos==='bottom-right'){ bx=W-bw-margin;   by=H-bh-margin; }
+  else if(pos==='bottom-left'){ bx=margin;     by=H-bh-margin; }
+  else if(pos==='top-right'){ bx=W-bw-margin;  by=margin; }
+  else { bx=margin; by=margin; }
+
+  // semi-transparent background
+  ctx.globalAlpha=0.72;
+  ctx.fillStyle=bg;
+  ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle=col;
+  ctx.fillText(txt, bx+pad, by+pad+fs*0.82);
 }
 const CMAP=[
   ['d-hdr-bg','--hdr-bg'],['d-hdr-txt','--hdr-txt'],['d-cvr-bg','--cover-bg'],['d-pg-bg','--page-bg'],
