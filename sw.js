@@ -1,17 +1,22 @@
-const CACHE = 'hse-v5';
-const STATIC_FILES=[
-"./",
-"./index.html",
-"./manifest.json",
-"./script.js",
-"./iconn-192.png",
-"./iconn-512.png",
-"./favicon.png"
-];
+const CACHE_NAME = 'hse-v6';
 
+// ✅ مش بنعرف الـ ASSETS مسبقاً — بنكتشفها تلقائياً
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS))
+    caches.open(CACHE_NAME).then(cache => {
+      // نحفظ الصفحة الرئيسية فقط عند التثبيت
+      return cache.addAll([
+        "./",
+        "./index.html",
+        "./manifest.json",
+        "./script.js",
+        "./iconn-192.png",
+        "./iconn-512.png",
+        "./favicon.png"
+      ]).catch(err => {
+        console.warn('SW install cache error (ignored):', err);
+      });
+    })
   );
   self.skipWaiting();
 });
@@ -20,7 +25,9 @@ self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+        keys
+          .filter(k => k !== CACHE_NAME)
+          .map(k => caches.delete(k))
       )
     )
   );
@@ -28,26 +35,37 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Firebase + Google APIs — always network
+  const url = e.request.url;
+
+  // ✅ Firebase و Google APIs — دايماً من الشبكة
   if (
-    e.request.url.includes('firebase') ||
-    e.request.url.includes('googleapis') ||
-    e.request.url.includes('gstatic') ||
-    e.request.url.includes('firebaseio')
+    url.includes('firebase') ||
+    url.includes('googleapis') ||
+    url.includes('gstatic') ||
+    url.includes('firebaseio') ||
+    url.includes('firestore')
   ) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // App shell — cache first, fallback to network
+  // ✅ باقي الطلبات — Cache First ثم Network
   e.respondWith(
     caches.match(e.request).then(cached => {
-      return cached || fetch(e.request).then(res => {
-        return caches.open(CACHE).then(c => {
-          c.put(e.request, res.clone());
-          return res;
-        });
+      if (cached) return cached;
+      return fetch(e.request).then(response => {
+        // احفظ في الكاش لو الرد صح
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(e.request, responseClone);
+          });
+        }
+        return response;
       });
-    }).catch(() => caches.match('./index.html'))
+    }).catch(() => {
+      // Offline fallback
+      return caches.match('./index.html');
+    })
   );
 });
