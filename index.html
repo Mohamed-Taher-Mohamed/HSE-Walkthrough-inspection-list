@@ -190,6 +190,26 @@ input[type=range]{accent-color:var(--primary);flex:1}
 .code-badge.expired{border-color:#c0392b;opacity:.6}
 /* Timestamp badge on images */
 .ts-overlay{position:absolute;font-weight:700;font-family:'Segoe UI',Arial,sans-serif;pointer-events:none;z-index:10;border-radius:3px;padding:3px 7px;white-space:nowrap;}
+
+/* ── Drop Zone ── */
+.drop-overlay{
+  position:absolute;inset:0;z-index:30;
+  display:none;pointer-events:none;
+  background:rgba(26,58,92,.18);
+  border:3px dashed var(--primary2);
+  border-radius:4px;
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;
+  font-size:16px;font-weight:700;color:var(--primary);
+}
+.drop-overlay.active{
+  display:flex;pointer-events:auto;
+  background:rgba(45,90,142,.22);
+  border-color:var(--accent);
+  color:var(--accent);
+  animation:dropPulse .6s ease-in-out infinite alternate;
+}
+@keyframes dropPulse{from{background:rgba(45,90,142,.15);}to{background:rgba(45,90,142,.32);}}
 @media print{
   @page{size:1366px 768px;margin:0}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
@@ -293,14 +313,18 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-ap
 import{getFirestore,doc,setDoc,getDoc,onSnapshot,enableIndexedDbPersistence}
   from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ══ استبدل هذه القيم ببيانات مشروعك من Firebase Console ══ */
+/* ══ Firebase Config — مشروعك الحقيقي ══
+   اجيب القيم دي من:
+   console.firebase.google.com → مشروعك → Project Settings (⚙️) → General → Your apps → Config
+*/
 const FB_CFG={
-  apiKey:"AIzaSyAbEtoWyt-z5bf9IQ_047oibNMtQ7WHAlI",
-  authDomain:"hse-walkthrough-inspection.firebaseapp.com",
-  projectId:"hse-walkthrough-inspection",
-  storageBucket:"hse-walkthrough-inspection.firebasestorage.app",
-  messagingSenderId:"939658557302",
-  appId:"1:939658557302:web:fbdcde07f005a9671dac57"
+  apiKey:            "AIzaSyDRI4g-1YgpPbUR4GecggZKFE0xZakHhc4",
+  authDomain:        "hse-walkthrough-inspecti-988b2.firebaseapp.com",
+  projectId:         "hse-walkthrough-inspecti-988b2",
+  storageBucket:     "hse-walkthrough-inspecti-988b2.firebasestorage.app",
+  messagingSenderId: "411809712682",
+  appId:             "1:411809712682:web:ded76a883586f901325153",
+  measurementId:     "G-1ZV8M7M9E1"
 };
 
 const fbApp=initializeApp(FB_CFG);
@@ -1052,7 +1076,23 @@ function buildPageEl(page,idx){
   </div>
   <div class="img-frame" id="ifr-${page.id}">
     ${page.img?`<img class="base-img" id="bimg-${page.id}" src="${page.img}" alt="obs" style="object-fit:${fit}">`
-      :`<div class="img-ph" id="iph-${page.id}"><div class="ico">📷</div><div>Tap to add image</div><div style="display:flex;gap:8px;margin-top:8px"><button class="img-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button><button class="img-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button></div></div>`}
+      :`<div class="img-ph" id="iph-${page.id}"
+          ondragover="handleDragOver(event,'${page.id}')"
+          ondragleave="handleDragLeave(event,'${page.id}')"
+          ondrop="handleDrop(event,'${page.id}')">
+          <div class="ico">📷</div>
+          <div>اسحب صورة هنا أو اختر من الأزرار</div>
+          <div style="font-size:11px;color:#bbb;margin-top:2px">Drag &amp; Drop image here</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="img-btn" onclick="pickImg('${page.id}',false)">🖼 Gallery</button>
+            <button class="img-btn" onclick="pickImg('${page.id}',true)">📷 Camera</button>
+          </div>
+        </div>`}
+    <!-- Drop zone overlay — يظهر فوق الصورة الموجودة أيضاً -->
+    <div class="drop-overlay" id="drop-ov-${page.id}"
+         ondragover="handleDragOver(event,'${page.id}')"
+         ondragleave="handleDragLeave(event,'${page.id}')"
+         ondrop="handleDrop(event,'${page.id}')"></div>
     <canvas class="draw-canvas" id="dc-${page.id}" style="pointer-events:none"></canvas>
     <div class="img-toolbar" id="dtb-${page.id}">
       <button class="tb-btn" id="tb-pen-${page.id}"    onclick="setTool('${page.id}','pen')">✏️ Pen</button>
@@ -1088,6 +1128,7 @@ function buildPageEl(page,idx){
 </div>`;
   setTimeout(()=>{
     initCanvas(page.id);
+    initDragDrop(page.id); /* ✅ تفعيل Drag & Drop */
     if(page.drawing||page.shapes)restoreDrawing(page);
     const ta=document.getElementById('ta-'+page.id);if(ta)shrinkIfNeeded(ta);
   },80);
@@ -1259,10 +1300,82 @@ function clearImg(pid){
   const bi=document.getElementById('bimg-'+pid);if(bi)bi.remove();
   const frame=document.getElementById('ifr-'+pid);
   if(frame&&!document.getElementById('iph-'+pid)){
-    const ph=document.createElement('div');ph.className='img-ph';ph.id='iph-'+pid;
-    ph.innerHTML='<div class="ico">📷</div><div>Add image from Gallery or Camera</div>';
+    const ph=document.createElement('div');
+    ph.className='img-ph';ph.id='iph-'+pid;
+    ph.setAttribute('ondragover',`handleDragOver(event,'${pid}')`);
+    ph.setAttribute('ondragleave',`handleDragLeave(event,'${pid}')`);
+    ph.setAttribute('ondrop',`handleDrop(event,'${pid}')`);
+    ph.innerHTML='<div class="ico">📷</div><div>اسحب صورة هنا أو اختر من الأزرار</div><div style="font-size:11px;color:#bbb;margin-top:2px">Drag & Drop image here</div>';
     frame.insertBefore(ph,frame.firstChild);
   }
+}
+
+/* ================================================================
+   DRAG & DROP — يعمل على Desktop وMobile (مع ماوس OTG)
+================================================================ */
+
+/* منع التحويل الافتراضي للمتصفح لكل الـ frame */
+function initDragDrop(pid){
+  const frame=document.getElementById('ifr-'+pid);
+  if(!frame)return;
+  /* dragenter على الـ frame كله يُشغّل الـ overlay */
+  frame.addEventListener('dragenter',e=>{
+    e.preventDefault();e.stopPropagation();
+    if(e.dataTransfer&&e.dataTransfer.types&&[...e.dataTransfer.types].includes('Files')){
+      showDropOverlay(pid,true);
+    }
+  });
+  frame.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();});
+  frame.addEventListener('dragleave',e=>{
+    /* تحقق أن المؤشر خرج من الـ frame فعلاً وليس دخل عنصر فرعي */
+    if(!frame.contains(e.relatedTarget)) showDropOverlay(pid,false);
+  });
+  frame.addEventListener('drop',e=>{
+    e.preventDefault();e.stopPropagation();
+    showDropOverlay(pid,false);
+    const file=e.dataTransfer?.files?.[0];
+    if(file&&file.type.startsWith('image/')) processImg(file,pid);
+    else if(file) toast('⚠ الملف ليس صورة — اسحب ملف صورة فقط');
+  });
+}
+
+function showDropOverlay(pid,show){
+  const ov=document.getElementById('drop-ov-'+pid);
+  if(!ov)return;
+  if(show){
+    ov.classList.add('active');
+    ov.innerHTML='<div style="font-size:32px">🖼️</div><div>أفلت الصورة هنا</div><div style="font-size:12px;opacity:.7">Drop image here</div>';
+  }else{
+    ov.classList.remove('active');
+    ov.innerHTML='';
+  }
+}
+
+/* دوال inline للـ img-ph placeholder */
+function handleDragOver(e,pid){
+  e.preventDefault();e.stopPropagation();
+  if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){
+    showDropOverlay(pid,true);
+    const ph=document.getElementById('iph-'+pid);
+    if(ph)ph.style.borderColor='var(--accent)';
+  }
+}
+function handleDragLeave(e,pid){
+  e.preventDefault();e.stopPropagation();
+  const frame=document.getElementById('ifr-'+pid);
+  if(!frame||!frame.contains(e.relatedTarget)){
+    showDropOverlay(pid,false);
+    const ph=document.getElementById('iph-'+pid);
+    if(ph)ph.style.borderColor='';
+  }
+}
+function handleDrop(e,pid){
+  e.preventDefault();e.stopPropagation();
+  showDropOverlay(pid,false);
+  const ph=document.getElementById('iph-'+pid);if(ph)ph.style.borderColor='';
+  const file=e.dataTransfer?.files?.[0];
+  if(file&&file.type.startsWith('image/')) processImg(file,pid);
+  else if(file) toast('⚠ الملف ليس صورة');
 }
 
 /* ================================================================
